@@ -44,21 +44,9 @@ Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")`
 	TIME1 <- input$TIME1  #TIme for first plasma acetaminophen concentration (hours)
 	PAC2 <- NA  #Make NA unless the appropriate "selectInput" option has been chosen
 	TIME2 <- NA  #When PAC2 is NA, just make it correspond to TIME = 0
-	PAC3 <- NA
-	TIME3 <- NA
-	PAC4 <- NA
-	TIME4 <- NA
 	if (input$NPAC > 1) {
 		PAC2 <- input$PAC2  #Second plasma acetaminophen concentration (mg/L)
 		TIME2 <- input$TIME2  #Time for second plasma acetaminophen concentration (hours)
-	}
-	if (input$NPAC > 2) {
-		PAC3 <- input$PAC3  #Third plasma acetaminophen concentration (mg/L)
-		TIME3 <- input$TIME3  #Time for third plasma acetaminophen concentration (hours)
-	}
-	if (input$NPAC > 3) {
-		PAC4 <- input$PAC4  #Fourth plasma acetaminophen concentration (mg/L)
-		TIME4 <- input$TIME4  #Time for fourth plasma acetaminophen concentration (hours)
 	}
 ```
   
@@ -80,90 +68,71 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 --------------------------------------------------- | --------------------------  
 1: `r TIME1`                                        | `r PAC1`    
 2: `r TIME2`                                        | `r PAC2`    
-3: `r TIME3`                                        | `r PAC3`    
-4: `r TIME4`                                        | `r PAC4`    
 
   
 ### Individual acetaminophen concentration-time profile
   
 ``` {r Individual acetaminophen concentration-time profile, echo=FALSE, warning=FALSE}
-		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
-		max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,ci.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4],rule.data$CONCdr2[rule.data$TIME == 4]))+20
-		#Calculate the maximum plottable value for y-axis
-		max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,ci.data$IPRE,na.omit(rule.data$CONCdr2)))+20
+	#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
+	max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4]))+20
+	#Calculate the maximum plottable value for y-axis
+	max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE))+20
+	if (input$CI95 == TRUE) {
+	  #Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
+	  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),rule.data$CONCrm[rule.data$TIME == 4]))+20
+	  #Calculate the maximum plottable value for y-axis
+	  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE)))+20
+	}
 
-		#Start plotting
-		plotobj1 <- NULL
-		plotobj1 <- ggplot()
+	#Start plotting
+	plotobj1 <- NULL
+	plotobj1 <- ggplot()
 
-		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
-		if (input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCtl),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCtl,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "orange")  #Range between treatment line and Rumack-Matthew Nomogram
-		  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCtl),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Treatment line
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
-		}
+	#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
+	if (input$RMN == TRUE) {
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+	  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+	  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+	}
 
-		#Plot Decision Rule 2
-		if (input$DR2 == TRUE) {
-			plotobj1 <- plotobj1 + geom_step(aes(x = TIME,y = CONCdr2),data = rule.data,linetype = "dashed",size = 1)
-		}
+	#95% prediction intervals
+	if (input$CI95 == TRUE) {
+		plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
+	}
 
-		# #Annotations for NAC decisions
-		# plotobj1 <- plotobj1 + annotate("text",x = 34,y = max.conc,label = "Administer NAC?",size = 3)  #Heading
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.7,label = "Rumack-Matthew Nomogram Decision:",size = 3,colour = "red")	#Rumack-Matthew Nomogram label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.7,label = decision.data$Decision[decision.data$Scenario == "rm.decision"],size = 3,colour = "red")	#Rumack-Matthew Nomogram decision
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.5,label = "Revised-Rumack-Matthew Nomogram (Treatment Line) Decision:",size = 3,colour = "blue")	#Treatment line label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.5,label = decision.data$Decision[decision.data$Scenario == "tline.decision"],size = 3,colour = "blue")	#Treatment line decision
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.1,label = "Empirical Decision Rule",size = 3,colour = "darkgreen")	#Decision Rule 2 label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.1,label = decision.data$Decision[decision.data$Scenario == "decisionrule2.decision"],size = 3,colour = "darkgreen")
+  #Individual patient data
+	plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+	plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
-		#95% prediction intervals
-		if (input$CI95 == TRUE) {
-			plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
-		}
-
-	  #Individual patient data
-		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
-		plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
-
-	  #Axes
-		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
-		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
-		}
-		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
-		}
-		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
-		}
-		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
-		}
-		print(plotobj1)
-		
-		#Display warning text if precision of at least one parameter is poor
-		warning.text <- " "
-		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
+  #Axes
+	plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+	if (input$LOGS == FALSE & input$RMN == FALSE) {
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+	}
+	if (input$LOGS == FALSE & input$RMN == TRUE) {
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+	}
+	if (input$LOGS == TRUE & input$RMN == FALSE) {
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+	}
+	if (input$LOGS == TRUE & input$RMN == TRUE) {
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+	}
+	print(plotobj1)
+	
+	#Display warning text if precision of at least one parameter is poor
+	warning.text <- " "
+	if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
 ```
   
 `r warning.text`
   
   
 ### N-acetylcysteine administration recommendations
-
-**Risk-Stratification Tool**                        | **Decision**   
---------------------------------------------------- | --------------------------  
-Rumack-Matthew Nomogram                             | `r decision.data$Decision[1]`   
-Revised Rumack-Matthew Nomogram (Treatment Line)    | `r decision.data$Decision[2]`    
-Bayesian Forecasting Rule                           | `r decision.data$Decision[3]` 
-
       
 ``` {r Administer N-acetylcysteine, echo=FALSE, warning=FALSE}
-	if (decision.data$Decision[3] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Bayesian forecasting rule"
-	if (decision.data$Decision[3] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Bayesian forecasting rule"
+	if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Bayesian forecasting rule"
+	if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Bayesian forecasting rule"
 ```
   
 `r recommendation.text`
