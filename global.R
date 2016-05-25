@@ -31,37 +31,36 @@
 #------------------------------------------------------------------------------------------
 #Population model parameters
   #THETAs
-    POPCL <- 14.5 #Clearance, L/h
-    POPV <- 78.1  #Volume of distribution for central compartment, L
-    POPKA <- 0.665 #Absorption rate constant, h^-1
-    POPF <- 1 #Bioavailability
-    COVSDAC_CL <- 0.061 #Effect of activated charcoal administration on CL
-    COVSDAC_F <- -0.144 #Effect of activated charcoal administration on F
+    POPCL <- 14.6076 #Clearance, L/h
+    POPV <- 76.1352	#Volume of distribution for central compartment, L
+    POPKA <- 0.66668 #Absorption rate constant, h^-1
+    POPF <- 1	#Bioavailability
+    COVSDAC_F <- -0.179735 #Effect of activated charcoal administration on F
     COVPROD_KA0 <- 0 #Effect of product category on KA; paracetamol alone
-    COVPROD_KA1 <- 1.501 #Effect of product category on KA; para+antihistamine
-    COVPROD_KA2 <- -0.476  #Effect of product category on KA; para+opioid
-    COVPROD_KA3 <- 0.023  #Effect of product category on KA; para+other
-    COVPROD_KA4 <- -0.321  #Effect of product category on KA; para+ER
+    COVPROD_KA1 <- 1.41279 #Effect of product category on KA; para+antihistamine
+    COVPROD_KA2 <- -0.488444  #Effect of product category on KA; para+opioid
+    COVPROD_KA3 <- 0.0222383  #Effect of product category on KA; para+other
+    COVPROD_KA4 <- -0.348731  #Effect of product category on KA; para ER
   #OMEGAs (as SDs)
-    PPVCL <- 0.2006 #PPV for CL
-    PPVV <- 0.0798  #PPV for V
-    PPVKA <- 0.6436 #PPV for KA
-    PPVF <- 0.7241  #PPV for F
+    PPVCL <- 0.035022858 #PPV for CL
+    PPVV <- 0.0054543827	#PPV for V
+    PPVKA <- 0.45608978	#PPV for KA
+    PPVF <- 0.52338442	#PPV for F
   #SIGMA (as SDs)
-    ERRPRO <- 0.3182  #Proportional residual error
+    ERRPRO <- 0.318253  #Proportional residual error
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
   #Function for calculating concentrations in a loop
-    conc.function <- function(df) {
+    conc.function <- function(df){
       for(i in 2:nrow(df)) {
         #Specify individual parameter values
-        df$CLi[i] <- POPCL*((df$WT[i]/70)^0.75)*(1+df$SDAC[i]*COVSDAC_CL)*exp(df$ETA1[i])
+        df$CLi[i] <- POPCL*((df$WT[i]/70)^0.75)*exp(df$ETA1[i])
         df$Vi[i] <- POPV*(df$WT[i]/70)*exp(df$ETA2[i])  #Individual value for V
-        if (df$PROD[i] == 1) df$KAi[i] <- POPKA*(1+COVPROD_KA0)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 2) df$KAi[i] <- POPKA*(1+COVPROD_KA1)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 3) df$KAi[i] <- POPKA*(1+COVPROD_KA2)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 4) df$KAi[i] <- POPKA*(1+COVPROD_KA3)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 5) df$KAi[i] <- POPKA*(1+COVPROD_KA4)*exp(df$ETA3[i]) #Individual value for KA
+        if (df$PROD[i] == 0) df$KAi[i] <- POPKA*(1+COVPROD_KA0)*exp(df$ETA3[i]) #Individual value for KA
+        if (df$PROD[i] == 1) df$KAi[i] <- POPKA*(1+COVPROD_KA1)*exp(df$ETA3[i]) #Individual value for KA
+        if (df$PROD[i] == 2) df$KAi[i] <- POPKA*(1+COVPROD_KA2)*exp(df$ETA3[i]) #Individual value for KA
+        if (df$PROD[i] == 3) df$KAi[i] <- POPKA*(1+COVPROD_KA3)*exp(df$ETA3[i]) #Individual value for KA
+        if (df$PROD[i] == 4) df$KAi[i] <- POPKA*(1+COVPROD_KA4)*exp(df$ETA3[i]) #Individual value for KA
         df$Fi[i] <- POPF*(1+df$SDAC[i]*COVSDAC_F)*exp(df$ETA4[i]) #Individual value for F
         #Specify initial conditions
         df$A1[df$TIME == 0] <- df$AMT[df$TIME == 0]*df$Fi[i]  #Drug amount in the absorption compartment at time zero
