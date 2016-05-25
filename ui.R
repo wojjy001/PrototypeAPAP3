@@ -49,7 +49,7 @@ body <-
 				fixedRow(
 					column(8,
 						h5(strong("Number of plasma acetaminophen concentrations sampled:")),
-						selectInput("NPAC","",choices = list("1" = 1,"2" = 2,"3" = 3,"4" = 4),selected = 2)	#Select input for number of plasma acetaminophen concentrations measured
+						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 2)	#Select input for number of plasma acetaminophen concentrations measured
 					)	#Brackets closing "column"
 				),	#Brackets closing "fixedRow"
 				fixedRow(
@@ -57,24 +57,12 @@ body <-
 						numericInput("TIME1","1: Time since ingestion (hours)",min = 0,value = 1),  #Numeric input for time of first plasma acetaminophen concentration
 						conditionalPanel(condition = "input.NPAC > 1",
 							numericInput("TIME2","2: Time since ingestion (hours)",min = 0,value = 8)  #Numeric input for time of second plasma acetaminophen concentration
-						),  #Brackets closing "conditionalPanel"
-						conditionalPanel(condition = "input.NPAC > 2",
-							numericInput("TIME3","3: Time since ingestion (hours)",min = 0,value = 10)  #Numeric input for time of third plasma acetaminophen concentration
-						),  #Brackets closing "conditonalPanel"
-						conditionalPanel(condition = "input.NPAC > 3",
-							numericInput("TIME4","4: Time since ingestion (hours)",min = 0,value = 12)  #Numeric input for time of fourth plasma acetaminophen concentration
 						)  #Brackets closing "conditionalPanel"
 					),  #Brackets closing "column"
 					column(4,
 						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 500),	#Numeric input for first plasma acetaminophen concentration
 						conditionalPanel(condition = "input.NPAC > 1",
 							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 150)	#Numeric input for second plasma acetaminophen concentration
-						),  #Brackets closing "conditionalPanel"
-            conditionalPanel(condition = "input.NPAC > 2",
-              numericInput("PAC3","3: Concentration (mg/L)",min = 0,value = 60)	#Numeric input for third plasma acetaminophen concentration
-						),  #Brackets closing "conditionalPanel"
-						conditionalPanel(condition = "input.NPAC > 3",
-							numericInput("PAC4","4: Concentration (mg/L)",min = 0,value = 10)	#Numeric input for fourth plasma acetaminophen concentration
 						)  #Brackets closing "conditionalPanel"
 					)  #Brackets closing "column"
 				),  #Brackets closing "fixedRow"
@@ -97,11 +85,10 @@ body <-
 							fixedRow(
 								column(7,
 									checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
-									checkboxInput("CI95","Show empirical 95% confidence intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
+									checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
 								),  #Brackets closing "column"
 								column(5,
-									checkboxInput("RMN","Show Rumack-Matthew nomograms",value = FALSE), #Checkbox input for plotting Rumack-Matthew Nomogram
-									checkboxInput("DR2","Show Bayesian forecasting rule",value = FALSE)	#Checkbox input for plotting Decision Rule 2 line
+									checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
 								),	#Brackets closing "column"
 								align = "left"
 							)	#Brackets closing "fixedRow"
