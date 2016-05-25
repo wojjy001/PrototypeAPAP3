@@ -18,30 +18,16 @@ shinyServer(function(input,output,session) {
 		TIME1 <- input$TIME1  #TIme for first plasma acetaminophen concentration (hours)
 		PAC2 <- NA  #Make NA unless the appropriate "selectInput" option has been chosen
 		TIME2 <- 0  #When PAC2 is NA, just make it correspond to TIME = 0
-		PAC3 <- NA
-		TIME3 <- 0
-		PAC4 <- NA
-		TIME4 <- 0
 		if (input$NPAC > 1) {
 			PAC2 <- input$PAC2  #Second plasma acetaminophen concentration (mg/L)
 			TIME2 <- input$TIME2  #Time for second plasma acetaminophen concentration (hours)
 		}
-		if (input$NPAC > 2) {
-			PAC3 <- input$PAC3  #Third plasma acetaminophen concentration (mg/L)
-			TIME3 <- input$TIME3  #Time for third plasma acetaminophen concentration (hours)
-		}
-		if (input$NPAC > 3) {
-			PAC4 <- input$PAC4  #Fourth plasma acetaminophen concentration (mg/L)
-			TIME4 <- input$TIME4  #Time for fourth plasma acetaminophen concentration (hours)
-		}
 		#Slot sampling times into TIME sequence
-		TIME <- sort(unique(c(TIME.base,TIME1,TIME2,TIME3,TIME4)))
+		TIME <- sort(unique(c(TIME.base,TIME1,TIME2)))
 		#Create a sequence of PAC values for corresponding times
 		PAC <- rep(NA,times = length(TIME))
 		PAC[TIME == TIME1] <- PAC1  #Input with PAC1 when TIME = TIME1
 		PAC[TIME == TIME2] <- PAC2  #Input with PAC2 when TIME = TIME2
-		PAC[TIME == TIME3] <- PAC3  #Input with PAC3 when TIME = TIME3
-		PAC[TIME == TIME4] <- PAC4  #Input with PAC4 when TIME = TIME4
 		#Collate into a data frame
 		input.data <- data.frame(TIME,  #Time sequence
 														AMT = c(AMT,rep(0,times = length(TIME)-1)),  #AMT input at time = 0, then no further doses at subsequent times
@@ -139,17 +125,11 @@ shinyServer(function(input,output,session) {
 	#Use individual simulated concentration-time profile (Rconc.data) to decide whether the individual should receive NAC or not
 	Rdecision.data <- reactive({
 		conc.data <- Rconc.data()	#Read in reactive "conc.data"
-		rm.decision.data <- ddply(conc.data, .(TIME), rm.function2)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
+		rm.decision.data <- ddply(conc.data, .(TIME), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
 			rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
 			if (rm.decision > 1) rm.decision <- 1
-		tline.decision.data <- ddply(conc.data, .(TIME), tline.function2)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the revised-RM nomogram, aka "treatment line"
-			tline.decision <- sum(na.omit(tline.decision.data$NAC_DEC))
-			if (tline.decision > 1) tline.decision <- 1
-		decisionrule2.decision.data <- ddply(conc.data, .(TIME), tline.function2)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the empirical decision rule 2
-			decisionrule2.decision <- sum(na.omit(decisionrule2.decision.data$NAC_DEC))
-			if (decisionrule2.decision > 1) decisionrule2.decision <- 1
 		#Combine results into a single data frame
-		decision.data <- data.frame(row.names = c("Rumack-Matthew Nomogram","Revised Rumack-Matthew Nomogram","Bayesian Forecasting Rule"),"Decision" = c(rm.decision,tline.decision,decisionrule2.decision))
+		decision.data <- data.frame(row.names = c("Rumack-Matthew Nomogram"),"Decision" = rm.decision)
 		decision.data$Decision[decision.data$Decision == 0] <- "No"
 		decision.data$Decision[decision.data$Decision == 1] <- "Yes"
 		decision.data
@@ -165,14 +145,14 @@ shinyServer(function(input,output,session) {
 		# decision.data <- Rdecision.data()	#Read in reactive "decision.data"
 
 		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
-		max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4],rule.data$CONCdr2[rule.data$TIME == 4]))+20
+		max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4]))+20
 		#Calculate the maximum plottable value for y-axis
-		max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,na.omit(rule.data$CONCdr2)))+20
+		max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE))+20
 		if (input$CI95 == TRUE) {
 		  #Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
-		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),rule.data$CONCrm[rule.data$TIME == 4],rule.data$CONCdr2[rule.data$TIME == 4]))+20
+		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),rule.data$CONCrm[rule.data$TIME == 4]))+20
 		  #Calculate the maximum plottable value for y-axis
-		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),na.omit(rule.data$CONCdr2)))+20
+		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE)))+20
 		}
 
 		#Start plotting
@@ -181,26 +161,10 @@ shinyServer(function(input,output,session) {
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCtl),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCtl,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "orange")  #Range between treatment line and Rumack-Matthew Nomogram
+			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
 		  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCtl),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Treatment line
 		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
 		}
-
-		#Plot Decision Rule 2
-		if (input$DR2 == TRUE) {
-			plotobj1 <- plotobj1 + geom_step(aes(x = TIME,y = CONCdr2),data = rule.data,linetype = "dashed",size = 1)
-		}
-
-		# #Annotations for NAC decisions
-		# plotobj1 <- plotobj1 + annotate("text",x = 34,y = max.conc,label = "Administer NAC?",size = 3)  #Heading
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.7,label = "Rumack-Matthew Nomogram Decision:",size = 3,colour = "red")	#Rumack-Matthew Nomogram label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.7,label = decision.data$Decision[decision.data$Scenario == "rm.decision"],size = 3,colour = "red")	#Rumack-Matthew Nomogram decision
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.5,label = "Revised-Rumack-Matthew Nomogram (Treatment Line) Decision:",size = 3,colour = "blue")	#Treatment line label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.5,label = decision.data$Decision[decision.data$Scenario == "tline.decision"],size = 3,colour = "blue")	#Treatment line decision
-		# plotobj1 <- plotobj1 + annotate("text",x = 32,y = max.conc*0.1,label = "Empirical Decision Rule",size = 3,colour = "darkgreen")	#Decision Rule 2 label
-		# plotobj1 <- plotobj1 + annotate("text",x = 40,y = max.conc*0.1,label = decision.data$Decision[decision.data$Scenario == "decisionrule2.decision"],size = 3,colour = "darkgreen")
 
 		#95% prediction intervals
 		if (input$CI95 == TRUE) {
@@ -242,8 +206,8 @@ shinyServer(function(input,output,session) {
 
 	output$NACtextOutput <- renderText({
 		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
-		if (decision.data$Decision[3] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Bayesian forecasting rule"
-		if (decision.data$Decision[3] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Bayesian forecasting rule"
+		if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		recommendation.text
 	})	#Brackets closing "renderText"
 
