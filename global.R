@@ -146,15 +146,8 @@
 #Functions for applying various decision rules to Bayes estimated concentration profiles
   TIME <- 4:24  #Times that the Rumack-Matthew nomogram can only be applied to
 #Rumack-Matthew Nomogram
-  CONCrm <- 400*exp(-log(2)/4*TIME.base)
-#Treatment Line
-  CONCtl <- 300*exp(-log(2)/4*TIME.base)
-#Decision Rule 2
-  decision.rule2.times <- c(0,4.1,6.1,8.1,10.1,12.1,24)  #Times when the rule changes
-  decision.rule2.concs <- c(150,125,90,65,45,20,20)  #Concentration cut-offs for the respective time-points
-  decision.rule2.nomogram <- approxfun(decision.rule2.times,decision.rule2.concs,method = "constant")
-  CONCdr2 <- decision.rule2.nomogram(TIME.base)
-  rule.data <- data.frame(TIME = TIME.base,CONCrm,CONCtl,CONCdr2)
+  CONCrm <- 300*exp(-log(2)/4*TIME.base)
+  rule.data <- data.frame(TIME = TIME.base,CONCrm)
 
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC
@@ -165,26 +158,5 @@
     if (PAC_TIME < 4) {
       input.data$NAC_DEC[input.data$TIME == PAC_TIME] <- NA
     }
-    input.data
-  }
-
-#Function for flagging if an individual should receive NAC or not based on "Treatment Line"
-#Function for BAYESIAN FORECASTED PAC
-  tline.function2 <- function(input.data) {
-    PAC_TIME <- input.data$TIME
-    input.data$NAC_DEC <- 0
-    input.data$NAC_DEC[input.data$IPRE[input.data$TIME == PAC_TIME] > rule.data$CONCtl[rule.data$TIME == PAC_TIME]] <- 1
-    if (PAC_TIME < 4) {
-      input.data$NAC_DEC[input.data$TIME == PAC_TIME] <- NA
-    }
-    input.data
-  }
-
-#Function for flagging if an individual should receive NAC or not based on DecisionRule2
-#Function for BAYESIAN FORECASTED PAC
-  decision.rule2.function2 <- function(input.data) {
-    PAC_TIME <- input.data$TIME
-    input.data$NAC_DEC <- 0
-    input.data$NAC_DEC[input.data$IPRE[input.data$TIME == PAC_TIME] > rule.data$CONCdr2[rule.data$TIME == PAC_TIME]] <- 1
     input.data
   }
