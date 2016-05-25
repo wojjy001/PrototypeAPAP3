@@ -96,7 +96,6 @@ body <-
 						column(5,
 							fixedRow(
 								h4(strong("N-acetylcysteine Decisions")),
-								tableOutput("NACtableOutput"),
 								strong(textOutput("NACtextOutput")),
 								hr(),
 								downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),

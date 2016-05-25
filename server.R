@@ -199,11 +199,6 @@ shinyServer(function(input,output,session) {
 		warning.text
 	})	#Brackets closing "renderText"
 
-	output$NACtableOutput <- renderTable({
-		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
-		decision.data
-	})	#Brackets closing "renderTable"
-
 	output$NACtextOutput <- renderText({
 		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
 		if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
