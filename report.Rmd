@@ -131,8 +131,8 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 ### N-acetylcysteine administration recommendations
       
 ``` {r Administer N-acetylcysteine, echo=FALSE, warning=FALSE}
-	if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Bayesian forecasting rule"
-	if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Bayesian forecasting rule"
+	if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+	if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 ```
   
 `r recommendation.text`

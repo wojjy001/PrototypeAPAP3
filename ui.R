@@ -83,11 +83,11 @@ body <-
 							textOutput("RSEtextOutput"),	#Sentence that appears if the precision of parameter estimates is poor
 							align = "center",
 							fixedRow(
-								column(7,
+								column(6,
 									checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
 									checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
 								),  #Brackets closing "column"
-								column(5,
+								column(6,
 									checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
 								),	#Brackets closing "column"
 								align = "left"
@@ -96,7 +96,7 @@ body <-
 						column(5,
 							fixedRow(
 								h4(strong("N-acetylcysteine Decisions")),
-								strong(textOutput("NACtextOutput")),
+								textOutput("NACtextOutput"),
 								hr(),
 								downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
 								align = "center"
