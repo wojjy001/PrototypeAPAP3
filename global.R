@@ -11,10 +11,10 @@
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
   #Directories on Windows
-    # dir <- "//psf/Home/Desktop/PipPrototypeApp2/"	#Directory where application files are saved
+    # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
     # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
   #Directories on Mac
-  	dir <- "/Users/JessWoj/Desktop/PrototypeAPAP2/"  #Application's directory
+  	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
     pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
   theme_bw2 <- theme_set(theme_bw(base_size = 14))
