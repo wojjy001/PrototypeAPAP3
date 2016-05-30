@@ -59,9 +59,11 @@ body <-
                 conditionalPanel(condition = "input.DEMO_TYPE == 1",
                   column(4,
                     numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4,width = 200)  #Numeric input for demonstration time
+                    # Demonstration example: t = 6
                   ),  #Brackets closing "column"
                   column(4,
-                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 100,width = 200)  #Numeric input for demonstration concentration
+                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150,width = 200)  #Numeric input for demonstration concentration
+                    # Demonstration example: conc = 70
                   ) #Brackets closing "column"
                 ),  #Brackets closing "conditionalPanel"
                 conditionalPanel(condition = "input.DEMO_TYPE == 2",

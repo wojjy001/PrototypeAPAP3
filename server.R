@@ -50,7 +50,8 @@ shinyServer(function(input,output,session) {
 			value = 0,
 			{
 			input.data <- Rinput.data()  #Read in the reactive "input.data"
-			bayes.data <- bayesian.function(input.data)
+			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]
+			bayes.data <- bayesian.function(input.data,DEMO_TYPE2 == FALSE)
 			}  #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
 	})  #Brackets closing "Rbayes.data"
@@ -139,6 +140,7 @@ shinyServer(function(input,output,session) {
 	##_OUTPUT_##
 	############
 	output$DEMOplotOutput <- renderPlot({
+
 		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
 		max.ribbon <- max(c(input$DEMO_PAC,rule.data$CONCrm[rule.data$TIME == 4]))+20
 		#Calculate the maximum plottable value for y-axis
@@ -152,22 +154,31 @@ shinyServer(function(input,output,session) {
 		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
 		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 
-		#Demonstration concentrations
+		#Demonstration free input concentrations
 		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 4)
+
+		#Demonstration Opioid-combination concentrations
+		if (input$DEMO_TYPE == 2) {
+			plotobj1 <- plotobj1 + geom_point(aes(x = 12,y = 50),size = 4)
+		}
 
 		#Axes
 		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
 		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+		# plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		print(plotobj1)
 	})
 
 	output$DEMOtextOutput <- renderText({
-		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME]) {
-			text <- "Recommend to administer NAC according to the Rumack-Matthew Nomogram"
+		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME] & input$DEMO_TYPE == 1) {
+			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		} else {
-			text <- "Do not administer NAC according to the Rumack-Matthew Nomogram"
+			text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
-		print(text)
+		if (input$DEMO_TYPE == 2) {
+			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
+		text
 	})
 
 	output$CONCplotOutput <- renderPlot({
