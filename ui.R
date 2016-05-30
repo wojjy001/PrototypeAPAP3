@@ -32,14 +32,35 @@ body <-
 		),
 		tabItems(
       tabItem(tabName = "intro",
-        h2("Web-Based Antidote Recommendation Tool for Acute Acetaminophen/Paracetamol Overdose"),
+        h2(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
         h3("Jessica Wojciechowski"),
-        p("Supervisors names and UMB people")
+        h4("University of South Australia supervisors: Richard Upton, David Foster, Michael Wiese"),
+        h4("University of Maryland, Baltimore co-authors:"),
+        hr(),
+        h3(strong("Paracetamol Overdose")),
+        p("How much is a paracetamol overdose?"),
+        p("How many people overdose?"),
+        p("What are the consequences when somebody overdoses on paracetamol?"),
+        p("What is the antidotal treatment?")
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "rm-nomo",
-        p("Plot of Rumack-Matthew nomogram where I can enter concentrations that appear on plot and give recommendation")
+        h3(strong("Rumack-Matthew Nomogram")),
+        h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
+        h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)"),
+        fixedRow(
+          plotOutput("DEMOplotOutput")  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
+        ),  #Brackets closing "fixedRow"
+        fixedRow(
+          column(4,
+            numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
+          ),  #Brackets closing "column"
+          column(4,
+            numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
+          ) #Brackets closing "column"
+        ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
+        h3(strong("Role of Population Pharmacokinetic Modelling")),
         p("Demonstrate the layers of a population PK model")
       ), #Brackets closing "tabItem" for "pop-pk"
       tabItem(tabName = "app"

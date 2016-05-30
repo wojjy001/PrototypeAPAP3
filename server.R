@@ -138,6 +138,29 @@ shinyServer(function(input,output,session) {
 	############
 	##_OUTPUT_##
 	############
+	output$DEMOplotOutput <- renderPlot({
+		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
+		max.ribbon <- max(c(input$DEMO_PAC,rule.data$CONCrm[rule.data$TIME == 4]))+20
+		#Calculate the maximum plottable value for y-axis
+		max.conc <- input$DEMO_PAC+20
+
+		plotobj1 <- NULL
+		plotobj1 <- ggplot()
+
+		#Rumack-Matthew Nomogram
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+
+		#Demonstration concentrations
+		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 2)
+
+		#Axes
+		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+		print(plotobj1)
+	})
+
 	output$CONCplotOutput <- renderPlot({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		conc.data <- Rconc.data()  #Read in reactive "conc.data"
@@ -156,40 +179,40 @@ shinyServer(function(input,output,session) {
 		}
 
 		#Start plotting
-		plotobj1 <- NULL
-		plotobj1 <- ggplot()
+		plotobj2 <- NULL
+		plotobj2 <- ggplot()
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-		  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
 		if (input$CI95 == TRUE) {
-			plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
+			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
 		}
 
 	  #Individual patient data
-		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
-		plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+		plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
-		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
-		print(plotobj1)
+		print(plotobj2)
 	})	#Brackets closing "renderPlot"
 
 	output$RSEtextOutput <- renderText({

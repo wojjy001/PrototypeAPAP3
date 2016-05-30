@@ -17,7 +17,7 @@
   	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
     pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
-  theme_bw2 <- theme_set(theme_bw(base_size = 14))
+  theme_bw2 <- theme_set(theme_bw(base_size = 16))
 #------------------------------------------------------------------------------------------
 #Define time sequence
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
