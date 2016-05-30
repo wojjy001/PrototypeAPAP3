@@ -20,9 +20,7 @@
   theme_bw2 <- theme_set(theme_bw(base_size = 16))
 #------------------------------------------------------------------------------------------
 #Define time sequence
-  TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
-                seq(from = 4,to = 12,by = 2),
-                seq(from = 16,to = 32,by = 8))
+  TIME.base <- seq(from = 0,to = 30,by = 0.25)
 #Set the number of individuals that make up the 95% prediction intervals
   n <- 1000
 #95% prediction interval functions
