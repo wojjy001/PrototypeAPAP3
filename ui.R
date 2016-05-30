@@ -45,7 +45,6 @@ body <-
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "rm-nomo",
         h3(strong("Rumack-Matthew Nomogram")),
-        hr(),
         fixedRow(
           column(4,
             h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
@@ -54,13 +53,21 @@ body <-
           column(8,
             box(
               fixedRow(
-                column(4,offset = 2,
-                  numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4,width = 200)  #Numeric input for demonstration time
-                ),  #Brackets closing "column"
                 column(4,
-                  numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150,width = 200)  #Numeric input for demonstration concentration
-                ), #Brackets closing "column"
-                align = "center"
+                  selectInput("DEMO_TYPE","Example:",choices = list("Free input" = 1,"Opioid-combination product" = 2),selected = 1)
+                ),  #Brackets closing "column"
+                conditionalPanel(condition = "input.DEMO_TYPE == 1",
+                  column(4,
+                    numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4,width = 200)  #Numeric input for demonstration time
+                  ),  #Brackets closing "column"
+                  column(4,
+                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 100,width = 200)  #Numeric input for demonstration concentration
+                  ) #Brackets closing "column"
+                ),  #Brackets closing "conditionalPanel"
+                conditionalPanel(condition = "input.DEMO_TYPE == 2",
+                  br(),
+                  h4("A single observation may fail to capture prolonged absorption")
+                ) #Brackets closing "conditionalPanel"
               ), #Brackets closing "fixedRow"
               fixedRow(
                 plotOutput("DEMOplotOutput",width = 700),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
