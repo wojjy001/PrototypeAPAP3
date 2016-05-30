@@ -23,6 +23,8 @@
   TIME.base <- seq(from = 0,to = 30,by = 0.25)
 #Set the number of individuals that make up the 95% prediction intervals
   n <- 1000
+#Set the number of individuals for population PK modelling example (simulation)
+  nsim <- 100
 #95% prediction interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
@@ -76,6 +78,46 @@
       }
       df
     }
+#------------------------------------------------------------------------------------------
+#Simulate a population according to the PK model described
+#Randomly sample individuals at different times for various amounts
+#Simulate different amounts ingested, different body weights and different products
+#Just make SDAC == 0
+  ID <- 1:nsim  #ID sequence
+  WT <- rlnorm(nsim,meanlog = log(70),sdlog = 0.3)  #Weight (kg)
+  PROD <- rbinom(nsim,size = 5,prob = 0.2) #Product categories
+  AMT <- rlnorm(nsim,meanlog = log(20),sdlog = 0.3)  #Estimated amount ingested (g)
+  sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
+  #Collate into a data frame
+  input.patient.data <- data.frame(ID,  #ID sequence
+                                    TIME = 0,  #Time sequence
+                                    nPAC = sample.lengths,
+                                    AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
+                                    PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
+                                    WT,  #Patient's weight (kg)
+                                    SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+                                    PROD,  #Product category ingested
+                                    ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
+                                    ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
+                                    ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
+                                    ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
+                                    CLi = POPCL,
+                                    Vi = POPV,
+                                    KAi = POPKA,
+                                    Fi = POPF)
+#Make a data frame of time-points - randomly generated for each individual
+  append.times.function <- function(input.data) {
+    nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
+    times <- sort(c(0,sample(TIME.base[TIME.base < 20],nPAC))) #Sample nPAC time-points from TIME.base
+    new.times.data <- lapply(input.data,rep.int,times = nPAC+1)
+    new.times.data <- as.data.frame(new.times.data)
+    new.times.data$TIME <- times
+    new.times.data$AMT[new.times.data$TIME != 0] <- 0
+    new.times.data
+  }
+  input.sim.data <- ddply(input.patient.data, .(ID), append.times.function)
+  conc.sim.data <- conc.function(input.sim.data)
+  conc.sim.data$DV <- conc.sim.data$IPRE*(1+rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
