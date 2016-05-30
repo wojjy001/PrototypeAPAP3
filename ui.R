@@ -7,16 +7,21 @@
 header <-
   dashboardHeader(
 		title = "To Antidote or Not?",
-		titleWidth = 400
+		titleWidth = 250
 	)	#Brackets closing "dashboardHeader"
 #Application's sidebar
 sidebar <-
 	dashboardSidebar(
 		width = 250,	#Width of sidebar the same as width of header
 		sidebarMenu(
-			menuItem("Patient Information",tabName = "patient",icon = icon("child")),
-			menuItem("Acetaminophen Information",tabName = "acetaminophen",icon = icon("medkit")),
-			menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
+      menuItem("Introduction",tabName = "intro",icon = icon("question-circle")),
+      menuItem("Rumack-Matthew Nomogram",tabName = "rm-nomo",icon = icon("calculator")),
+      menuItem("Population PK Modelling",tabName = "pop-pk",icon = icon("bullseye")),
+      menuItem("Application",tabName = "app",icon = icon("chrome"),
+        menuSubItem("Patient Information",tabName = "patient",icon = icon("child")),
+        menuSubItem("Acetaminophen Information",tabName = "acetaminophen",icon = icon("medkit")),
+			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
+      ) #Brackets closing "menuItem"
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -26,6 +31,20 @@ body <-
 			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
 		),
 		tabItems(
+      tabItem(tabName = "intro",
+        h2("Web-Based Antidote Recommendation Tool for Acute Acetaminophen/Paracetamol Overdose"),
+        h3("Jessica Wojciechowski"),
+        p("Supervisors names and UMB people")
+      ),  #Brackets closing "tabItem" for "intro"
+      tabItem(tabName = "rm-nomo",
+        p("Plot of Rumack-Matthew nomogram where I can enter concentrations that appear on plot and give recommendation")
+      ),  #Brackets closing "tabItem" for "rm-nomo"
+      tabItem(tabName = "pop-pk",
+        p("Demonstrate the layers of a population PK model")
+      ), #Brackets closing "tabItem" for "pop-pk"
+      tabItem(tabName = "app"
+        #Leave this blank so nothing happens when this tab is clicked
+      ),  #Brackets closing "tabItem" for "app"
 			tabItem(tabName = "patient",
 				h4("Patient Information:"),	#Heading for Patient Information section
 				numericInput("MRN","Medical Record Number (MRN):",value = 000000,step = 1),  #Numeric input for patient's medical record number (or unit record number)
