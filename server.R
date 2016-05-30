@@ -51,7 +51,7 @@ shinyServer(function(input,output,session) {
 			{
 			input.data <- Rinput.data()  #Read in the reactive "input.data"
 			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]
-			bayes.data <- bayesian.function(input.data,DEMO_TYPE2 == FALSE)
+			bayes.data <- bayesian.function(input.data)
 			}  #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
 	})  #Brackets closing "Rbayes.data"

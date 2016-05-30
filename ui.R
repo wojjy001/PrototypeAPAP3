@@ -15,11 +15,12 @@ sidebar <-
 		width = 250,	#Width of sidebar the same as width of header
 		sidebarMenu(
       menuItem("Introduction",tabName = "intro",icon = icon("question-circle")),
+      menuItem("Paracetamol Overdose",tabName = "para-overdose",icon = icon("eyedropper")),
       menuItem("Rumack-Matthew Nomogram",tabName = "rm-nomo",icon = icon("calculator")),
       menuItem("Population PK Modelling",tabName = "pop-pk",icon = icon("bullseye")),
       menuItem("Application",tabName = "app",icon = icon("chrome"),
         menuSubItem("Patient Information",tabName = "patient",icon = icon("child")),
-        menuSubItem("Acetaminophen Information",tabName = "acetaminophen",icon = icon("medkit")),
+        menuSubItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
 			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
       ) #Brackets closing "menuItem"
 		)	#Brackets closing "sidebarMenu"
@@ -32,23 +33,24 @@ body <-
 		),
 		tabItems(
       tabItem(tabName = "intro",
-        h2(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
-        h3("Jessica Wojciechowski"),
-        h4("University of South Australia supervisors: Richard Upton, David Foster, Michael Wiese"),
-        h4("University of Maryland, Baltimore co-authors:"),
-        hr(),
-        h3(strong("Paracetamol Overdose")),
-        p("How much is a paracetamol overdose?"),
-        p("How many people overdose?"),
-        p("What are the consequences when somebody overdoses on paracetamol?"),
-        p("What is the antidotal treatment?")
+        h1(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
+        h2("Jessica Wojciechowski"),
+        h3("University of South Australia supervisors: Richard Upton, David Foster, Michael Wiese"),
+        h3("University of Maryland, Baltimore co-authors:")
       ),  #Brackets closing "tabItem" for "intro"
+      tabItem(tabName = "para-overdose",
+        h2(strong("Paracetamol Overdose")),
+        h3("How much is a paracetamol overdose?"),
+        h3("How many people overdose?"),
+        h3("What are the consequences when somebody overdoses on paracetamol?"),
+        h3("What is the antidotal treatment?")
+      ),  #Brackets closing "tabItem" for "para-overdose"
       tabItem(tabName = "rm-nomo",
-        h3(strong("Rumack-Matthew Nomogram")),
+        h2(strong("Rumack-Matthew Nomogram")),
         fixedRow(
           column(4,
-            h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
-            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
+            h3("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
+            h3("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
           ),  #Brackets closing column
           column(8,
             box(
@@ -72,7 +74,7 @@ body <-
                 ) #Brackets closing "conditionalPanel"
               ), #Brackets closing "fixedRow"
               fixedRow(
-                plotOutput("DEMOplotOutput",width = 700),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
+                plotOutput("DEMOplotOutput",width = 600),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
                 align = "center"
               ),  #Brackets closing "fixedRow"
               width = 12,
@@ -86,7 +88,7 @@ body <-
         ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
-        h3(strong("Role of Population Pharmacokinetic Modelling")),
+        h2(strong("Role of Population Pharmacokinetic Modelling")),
         p("Demonstrate the layers of a population PK model")
       ), #Brackets closing "tabItem" for "pop-pk"
       tabItem(tabName = "app"
@@ -107,14 +109,14 @@ body <-
 					)	#Brackets closing "column"
 				)	#Brackets closing "fixedRow"
 			),	#Brackets closing "tabItem" for "patient"
-			tabItem(tabName = "acetaminophen",
-				h4("Acetaminophen Information:"),	#Heading for Acetaminophen Information section
-				dateInput("DDATE", "Date of Acetaminophen Overdose (DD-MM-YYYY):",value = NULL,format = "dd-mm-yyyy",startview = "month"),
+			tabItem(tabName = "para-info",
+				h4("Overdose Information:"),	#Heading for Overdose Information section
+				dateInput("DDATE", "Date of Paracetamol Overdose (DD-MM-YYYY):",value = NULL,format = "dd-mm-yyyy",startview = "month"),
 				numericInput("AMT","Estimated amount ingested (g):",min = 0,value = 25),	#Numeric input for estimated acetaminophen amount ingested
-				selectInput("PROD","Product type ingested:",choices = list("Acetaminophen alone" = 1,"Acetaminophen and antihistamine" = 2,"Acetaminophen and opioid" = 3,"Acetaminophen and other" = 4,"Extended-release acetaminophen" = 5),selected = 1),	#Select input for product category ingested
+				selectInput("PROD","Product type ingested:",choices = list("Paracetamol alone" = 1,"Paracetamol and antihistamine" = 2,"Paracetamol and opioid" = 3,"Paracetamol and other" = 4,"Extended-release paracetamol" = 5),selected = 1),	#Select input for product category ingested
 				fixedRow(
 					column(8,
-						h5(strong("Number of plasma acetaminophen concentrations sampled:")),
+						h5(strong("Number of plasma paracetamol concentrations sampled:")),
 						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 2)	#Select input for number of plasma acetaminophen concentrations measured
 					)	#Brackets closing "column"
 				),	#Brackets closing "fixedRow"
@@ -143,7 +145,7 @@ body <-
 				box(
 					fixedRow(
 						column(7,
-							h4(strong("Individual Acetaminophen Concentration-Time Profile")),
+							h4(strong("Individual Paracetamol Concentration-Time Profile")),
 							plotOutput("CONCplotOutput"),
 							br(),	#Add a space between plot and "warning text"
 							textOutput("RSEtextOutput"),	#Sentence that appears if the precision of parameter estimates is poor
