@@ -45,17 +45,34 @@ body <-
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "rm-nomo",
         h3(strong("Rumack-Matthew Nomogram")),
-        h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
-        h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)"),
-        fixedRow(
-          plotOutput("DEMOplotOutput")  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
-        ),  #Brackets closing "fixedRow"
+        hr(),
         fixedRow(
           column(4,
-            numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
-          ),  #Brackets closing "column"
-          column(4,
-            numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
+            h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
+            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
+          ),  #Brackets closing column
+          column(8,
+            box(
+              fixedRow(
+                column(4,offset = 2,
+                  numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4,width = 200)  #Numeric input for demonstration time
+                ),  #Brackets closing "column"
+                column(4,
+                  numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150,width = 200)  #Numeric input for demonstration concentration
+                ), #Brackets closing "column"
+                align = "center"
+              ), #Brackets closing "fixedRow"
+              fixedRow(
+                plotOutput("DEMOplotOutput",width = 700),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
+                align = "center"
+              ),  #Brackets closing "fixedRow"
+              width = 12,
+              status = "primary",
+              title = "Rumack-Matthew Nomogram",
+              footer = "NAC Recommendation",
+              solidHeader = TRUE,
+              collapsible = TRUE
+            ) #Brackets closing "box"
           ) #Brackets closing "column"
         ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "rm-nomo"

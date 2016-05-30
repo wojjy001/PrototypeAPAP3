@@ -150,13 +150,13 @@ shinyServer(function(input,output,session) {
 		#Rumack-Matthew Nomogram
 		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
 		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 
 		#Demonstration concentrations
-		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 2)
+		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 4)
 
 		#Axes
-		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
 		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		print(plotobj1)
 	})
