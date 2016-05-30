@@ -172,6 +172,8 @@ shinyServer(function(input,output,session) {
 	output$DEMOtextOutput <- renderText({
 		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME] & input$DEMO_TYPE == 1) {
 			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		} else if (input$DEMO_TIME < 4) {
+			text <- "Sampling is too early to use the Rumack-Matthew Nomogram."
 		} else {
 			text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
