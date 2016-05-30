@@ -69,7 +69,7 @@ body <-
               width = 12,
               status = "primary",
               title = "Rumack-Matthew Nomogram",
-              footer = "NAC Recommendation",
+              footer = h4(strong(textOutput("DEMOtextOutput"))),
               solidHeader = TRUE,
               collapsible = TRUE
             ) #Brackets closing "box"

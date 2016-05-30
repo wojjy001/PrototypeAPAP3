@@ -161,6 +161,15 @@ shinyServer(function(input,output,session) {
 		print(plotobj1)
 	})
 
+	output$DEMOtextOutput <- renderText({
+		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME]) {
+			text <- "Recommend to administer NAC according to the Rumack-Matthew Nomogram"
+		} else {
+			text <- "Do not administer NAC according to the Rumack-Matthew Nomogram"
+		}
+		print(text)
+	})
+
 	output$CONCplotOutput <- renderPlot({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		conc.data <- Rconc.data()  #Read in reactive "conc.data"
