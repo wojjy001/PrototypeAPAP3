@@ -6,7 +6,7 @@
 #Application's header
 header <-
   dashboardHeader(
-		title = "Acetaminophen Overdose Application",
+		title = "To Antidote or Not?",
 		titleWidth = 400
 	)	#Brackets closing "dashboardHeader"
 #Application's sidebar
