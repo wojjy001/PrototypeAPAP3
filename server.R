@@ -1,4 +1,4 @@
-#server.R script for PrototypeAPAP2
+#server.R script for PrototypeAPAP3
 #Reactive objects (i.e., those dependent on widget input) are written here
 #------------------------------------------------------------------------------------------
 #Define the "server" part of the Shiny application
@@ -163,13 +163,17 @@ shinyServer(function(input,output,session) {
 
 		#Axes
 		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
-		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
-		# plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		if (input$DEMO_LOG == FALSE) {
+			plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+		}
+		if (input$DEMO_LOG == TRUE) {
+			plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		}
 		print(plotobj1)
 	})	#Brackets closing "renderPlot"
 
 	output$DEMOtextOutput1 <- renderText({
-		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME] & input$DEMO_TYPE == 1) {
+		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME]) {
 			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		} else if (input$DEMO_TIME < 4) {
 			text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
@@ -186,22 +190,34 @@ shinyServer(function(input,output,session) {
 		plotobj3 <- NULL
 		plotobj3 <- ggplot()
 
-		#Population's observed concentrations
-		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
+		if (input$POPPK == 1) {
+			#Population's observed concentrations
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
 
-		#Plot individual Loess-smoothed lines
-		if (input$IND_LINES == TRUE) {
-			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data,method = loess,se = F,size = 1)
+			#Plot population median line
+			if (input$POP_MED == TRUE) {
+				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
+			}
+
+			#Plot population 95% prediction intervals
+			if (input$POP_CI == TRUE) {
+				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
+			}
 		}
 
-		#Plot population median line
-		if (input$POP_MED == TRUE) {
-			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
-		}
+		if (input$POPPK == 2) {
+			#Sample 4 random individuals from conc.sim.data
+			set.seed(123456)
+			IDrand <- sample(unique(conc.sim.data$ID),4)
+			conc.sim.data.rand <- conc.sim.data[conc.sim.data$ID %in% IDrand,]
 
-		#Plot population 95% prediction intervals
-		if (input$POP_CI == TRUE) {
-			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
+
+			plotobj3 <- plotobj3 + facet_wrap(~ID,scales = "free_y")
+
+			if (input$IND_LINES == TRUE) {
+				plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
+			}
 		}
 
 		#Axes
@@ -210,7 +226,7 @@ shinyServer(function(input,output,session) {
 			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
 		}
 		if (input$DEMO_LOGS == TRUE) {
-			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n")
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n",breaks = c(1,10,100,1000))
 		}
 		plotobj3 <- plotobj3 + theme(legend.position = "none")
 

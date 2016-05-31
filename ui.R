@@ -1,4 +1,4 @@
-#ui.R script for PrototypeAPAP2
+#ui.R script for PrototypeAPAP3
 #The user-interface and widget input for the Shiny application is defined here
 #Sends user-defined input to server.R, calls created output from server.R
 #Now using shinydashboard for the user-interface
@@ -56,7 +56,7 @@ body <-
             box(
               fixedRow(
                 column(4,
-                  selectInput("DEMO_TYPE","Example:",choices = list("Free input" = 1,"Opioid-combination product" = 2),selected = 1)
+                  selectInput("DEMO_TYPE","Example:",choices = list("Single Observation" = 1,"Second Observation" = 2),selected = 1)
                 ),  #Brackets closing "column"
                 conditionalPanel(condition = "input.DEMO_TYPE == 1",
                   column(4,
@@ -77,6 +77,7 @@ body <-
                 plotOutput("DEMOplotOutput1",width = 600),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
                 align = "center"
               ),  #Brackets closing "fixedRow"
+              checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
               width = 12,
               status = "primary",
               title = "Rumack-Matthew Nomogram",
@@ -89,23 +90,52 @@ body <-
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
         h2(strong("Role of Population Pharmacokinetic Modelling")),
-        box(
-          fixedRow(
-            column(5,offset = 1,
-              checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale",value = FALSE),
-              checkboxInput("IND_LINES","Plot 20 random individuals",value = FALSE)
-            ),  #Brackets closing "column"
-            column(5,
-              checkboxInput("POP_MED","Plot population average line (median)",value = FALSE),
-              checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
-            ) #Brackets closing "column"
-          ), #Brackets closing "fixedRow"
-          plotOutput("DEMOplotOutput2"),
-          width = 8,
-          status = "primary",
-          title = "Paracetamol Pharmacokinetics",
-          solidHeader = TRUE
-        ) #Brackets closing "box"
+        fixedRow(
+          column(4,
+            h3("Non-linear mixed-effect modelling"),
+            h4("- Fixed effects parameters describe the population average"),
+            h4("- Random effect parameters describe how and how much individuals vary from the population average"),
+            h4("- Parameters estimated using maximum likelihood estimation"),
+            h3("Previous model provides useful information regarding the pharmacokinetics of paracetamol following an acute overdose in a population, i.e., the quantitative effect of:"),
+            h4("- Differences in amounts ingested"),
+            h4("- Differences in products ingested"),
+            h4("- Differences in body weights"),
+            h4("- Administration of single-dose activated charcoal"),
+            h4("- Unexplained differences between individuals"),
+            h4("- Unexplained differences within an individual")
+          ),  #Brackets closing "column"
+          column(8,
+            box(
+              selectInput("POPPK","Population or Individual?",choices = list("Population" = 1,"Individual" = 2),selected = 1,width = 250),
+              conditionalPanel(condition = "input.POPPK == 1",
+                fixedRow(
+                  column(4,
+                    checkboxInput("POP_MED","Plot population median line",value = FALSE)
+                  ),  #Brackets closing "column"
+                  column(4,
+                    checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
+                  ) #Brackets closing "column"
+                ) #Brackets closing "fixedRow"
+              ),  #Brackets closing "conditionalPanel"
+              conditionalPanel(condition = "input.POPPK == 2",
+                fixedRow(
+                  column(4,
+                    checkboxInput("IND_LINES","Plot individual predictions",value = FALSE)
+                  ), #Brackets closing "column"
+                  column(4,
+                    checkboxInput("IND_PARM","Show individual parameter values",value = FALSE)
+                  ) #Brackets closing "column"
+                ) #Brackets closing "fixedRow"
+              ),  #Brackets closing "conditionalPanel"
+              plotOutput("DEMOplotOutput2"),
+              width = 12,
+              status = "primary",
+              title = "Paracetamol Pharmacokinetics",
+              footer = checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale",value = FALSE),
+              solidHeader = TRUE
+            ) #Brackets closing "box"
+          ) #Brackets closing "column"
+        ) #Brackets closing "fixedRow"
       ), #Brackets closing "tabItem" for "pop-pk"
       tabItem(tabName = "app"
         #Leave this blank so nothing happens when this tab is clicked

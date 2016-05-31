@@ -1,4 +1,4 @@
-#global.R script for PrototypeAPAP2
+#global.R script for PrototypeAPAP3
 #Objects that are not reactive are written here
 #This also a safe place for functions that are then used in server.R
 #------------------------------------------------------------------------------------------
@@ -32,6 +32,8 @@
 #95% prediction interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
+#Set seed for reproducible numbers
+  set.seed(123456)
 #------------------------------------------------------------------------------------------
 #Population model parameters
   #THETAs
@@ -193,9 +195,10 @@
 #------------------------------------------------------------------------------------------
 #Functions for applying various decision rules to Bayes estimated concentration profiles
   TIME <- 4:24  #Times that the Rumack-Matthew nomogram can only be applied to
+  TIME.rm <- seq(from = 0,to = max(TIME.base),by = 0.25)
 #Rumack-Matthew Nomogram
-  CONCrm <- 300*exp(-log(2)/4*TIME.base)
-  rule.data <- data.frame(TIME = TIME.base,CONCrm)
+  CONCrm <- 300*exp(-log(2)/4*TIME.rm)
+  rule.data <- data.frame(TIME = TIME.rm,CONCrm)
 
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC
