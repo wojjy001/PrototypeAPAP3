@@ -108,7 +108,7 @@
 #Make a data frame of time-points - randomly generated for each individual
   append.times.function <- function(input.data) {
     nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
-    times <- sort(c(0,sample(TIME.base[TIME.base < 20],nPAC))) #Sample nPAC time-points from TIME.base
+    times <- sort(c(0,sample(TIME.base[TIME.base > 1 & TIME.base < 20],nPAC))) #Sample nPAC time-points from TIME.base
     new.times.data <- lapply(input.data,rep.int,times = nPAC+1)
     new.times.data <- as.data.frame(new.times.data)
     new.times.data$TIME <- times
@@ -118,6 +118,7 @@
   input.sim.data <- ddply(input.patient.data, .(ID), append.times.function)
   conc.sim.data <- conc.function(input.sim.data)
   conc.sim.data$DV <- conc.sim.data$IPRE*(1+rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
+  conc.sim.data$ID <- as.factor(conc.sim.data$ID)
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {

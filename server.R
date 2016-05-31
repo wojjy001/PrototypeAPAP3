@@ -187,11 +187,26 @@ shinyServer(function(input,output,session) {
 		plotobj3 <- ggplot()
 
 		#Population's observed concentrations
-		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data,colour = "red",size = 2)
+		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0,],size = 3,alpha = 0.7)
 
+		#Plot individual Loess-smoothed lines
+		if (input$IND_LINES == TRUE) {
+			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data,method = loess,se = F,size = 1)
+		}
+
+		#Plot population loess-smoothed line
+		if (input$POP_LINE == TRUE) {
+			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV),data = conc.sim.data,colour = "black",method = loess,se = F,size = 1)
+		}
+		
 		#Axes
 		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
 		plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+		if (input$DEMO_LOGS == TRUE) {
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n")
+		}
+		plotobj3 <- plotobj3 + theme(legend.position = "none")
+
 		print(plotobj3)
 	})	#Brackets closing "renderPlot"
 
