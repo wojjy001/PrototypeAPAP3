@@ -139,8 +139,7 @@ shinyServer(function(input,output,session) {
 	############
 	##_OUTPUT_##
 	############
-	output$DEMOplotOutput <- renderPlot({
-
+	output$DEMOplotOutput1 <- renderPlot({
 		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
 		max.ribbon <- max(c(input$DEMO_PAC,rule.data$CONCrm[rule.data$TIME == 4]))+20
 		#Calculate the maximum plottable value for y-axis
@@ -167,9 +166,9 @@ shinyServer(function(input,output,session) {
 		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		# plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		print(plotobj1)
-	})
+	})	#Brackets closing "renderPlot"
 
-	output$DEMOtextOutput <- renderText({
+	output$DEMOtextOutput1 <- renderText({
 		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME] & input$DEMO_TYPE == 1) {
 			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		} else if (input$DEMO_TIME < 4) {
@@ -181,7 +180,20 @@ shinyServer(function(input,output,session) {
 			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
 		text
-	})
+	})	#Brackets closing "renderText"
+
+	output$DEMOplotOutput2 <- renderPlot({
+		plotobj3 <- NULL
+		plotobj3 <- ggplot()
+
+		#Population's observed concentrations
+		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data,colour = "red",size = 2)
+
+		#Axes
+		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+		print(plotobj3)
+	})	#Brackets closing "renderPlot"
 
 	output$CONCplotOutput <- renderPlot({
 		input.data <- Rinput.data()  #Read in reactive "input.data"

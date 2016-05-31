@@ -74,13 +74,13 @@ body <-
                 ) #Brackets closing "conditionalPanel"
               ), #Brackets closing "fixedRow"
               fixedRow(
-                plotOutput("DEMOplotOutput",width = 600),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
+                plotOutput("DEMOplotOutput1",width = 600),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
                 align = "center"
               ),  #Brackets closing "fixedRow"
               width = 12,
               status = "primary",
               title = "Rumack-Matthew Nomogram",
-              footer = h4(strong(textOutput("DEMOtextOutput"))),
+              footer = h4(strong(textOutput("DEMOtextOutput1"))),
               solidHeader = TRUE,
               collapsible = TRUE
             ) #Brackets closing "box"
@@ -89,7 +89,7 @@ body <-
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
         h2(strong("Role of Population Pharmacokinetic Modelling")),
-        p("Demonstrate the layers of a population PK model")
+        plotOutput("DEMOplotOutput2")
       ), #Brackets closing "tabItem" for "pop-pk"
       tabItem(tabName = "app"
         #Leave this blank so nothing happens when this tab is clicked
