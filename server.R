@@ -187,21 +187,28 @@ shinyServer(function(input,output,session) {
 		plotobj3 <- ggplot()
 
 		#Population's observed concentrations
-		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0,],size = 3,alpha = 0.7)
+		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
 
 		#Plot individual Loess-smoothed lines
 		if (input$IND_LINES == TRUE) {
 			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data,method = loess,se = F,size = 1)
 		}
 
-		#Plot population loess-smoothed line
-		if (input$POP_LINE == TRUE) {
-			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV),data = conc.sim.data,colour = "black",method = loess,se = F,size = 1)
+		#Plot population median line
+		if (input$POP_MED == TRUE) {
+			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
+		}
+
+		#Plot population 95% prediction intervals
+		if (input$POP_CI == TRUE) {
+			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
 		}
 
 		#Axes
-		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
-		plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,32))
+		if (input$DEMO_LOGS == FALSE) {
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+		}
 		if (input$DEMO_LOGS == TRUE) {
 			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n")
 		}

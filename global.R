@@ -94,34 +94,37 @@
   sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
   #Collate into a data frame
   input.patient.data <- data.frame(ID,  #ID sequence
-                                    TIME = 0,  #Time sequence
-                                    nPAC = sample.lengths,
-                                    AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
-                                    PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
-                                    WT,  #Patient's weight (kg)
-                                    SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
-                                    PROD,  #Product category ingested
-                                    ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
-                                    ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
-                                    ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
-                                    ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
-                                    CLi = POPCL,
-                                    Vi = POPV,
-                                    KAi = POPKA,
-                                    Fi = POPF)
+                                  TIME = 0, #Placeholder for the time column
+                                  nPAC = sample.lengths,
+                                  AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
+                                  PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
+                                  WT,  #Patient's weight (kg)
+                                  SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+                                  PROD,  #Product category ingested
+                                  ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
+                                  ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
+                                  ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
+                                  ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
+                                  CLi = POPCL,
+                                  Vi = POPV,
+                                  KAi = POPKA,
+                                  Fi = POPF)
+  input.time.data <- lapply(input.patient.data,rep.int,times = length(TIME.base))
+  input.time.data <- as.data.frame(input.time.data)
+  input.time.data <- input.time.data[with(input.time.data, order(input.time.data$ID)),]
+  input.time.data$TIME <- TIME.base
+  input.time.data$AMT[input.time.data$TIME != 0] <- 0
 #Make a data frame of time-points - randomly generated for each individual
-  append.times.function <- function(input.data) {
+  sample.times.function <- function(input.data) {
     nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
-    times <- sort(c(0,sample(TIME.base[TIME.base > 1 & TIME.base < 20],nPAC))) #Sample nPAC time-points from TIME.base
-    new.times.data <- lapply(input.data,rep.int,times = nPAC+1)
-    new.times.data <- as.data.frame(new.times.data)
-    new.times.data$TIME <- times
-    new.times.data$AMT[new.times.data$TIME != 0] <- 0
-    new.times.data
+    sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],nPAC) #Sample nPAC time-points from TIME.base
+    input.data$SAMPLE <- 0
+    input.data$SAMPLE[input.data$TIME %in% sample.times] <- 1
+    input.data
   }
-  input.sim.data <- ddply(input.patient.data, .(ID), append.times.function)
+  input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
   conc.sim.data <- conc.function(input.sim.data)
-  conc.sim.data$DV <- conc.sim.data$IPRE*(1+rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
+  conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
   conc.sim.data$ID <- as.factor(conc.sim.data$ID)
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values

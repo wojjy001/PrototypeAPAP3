@@ -89,10 +89,23 @@ body <-
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
         h2(strong("Role of Population Pharmacokinetic Modelling")),
-        plotOutput("DEMOplotOutput2"),
-        checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale:",value = FALSE),
-        checkboxInput("IND_LINES","Plot individual lines:",value = FALSE),
-        checkboxInput("POP_LINE","Plot population average line:",value = FALSE)
+        box(
+          fixedRow(
+            column(5,offset = 1,
+              checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale",value = FALSE),
+              checkboxInput("IND_LINES","Plot 20 random individuals",value = FALSE)
+            ),  #Brackets closing "column"
+            column(5,
+              checkboxInput("POP_MED","Plot population average line (median)",value = FALSE),
+              checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
+            ) #Brackets closing "column"
+          ), #Brackets closing "fixedRow"
+          plotOutput("DEMOplotOutput2"),
+          width = 8,
+          status = "primary",
+          title = "Paracetamol Pharmacokinetics",
+          solidHeader = TRUE
+        ) #Brackets closing "box"
       ), #Brackets closing "tabItem" for "pop-pk"
       tabItem(tabName = "app"
         #Leave this blank so nothing happens when this tab is clicked
