@@ -120,7 +120,7 @@ body <-
 				fixedRow(
 					column(8,
 						h5(strong("Number of plasma paracetamol concentrations sampled:")),
-						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 2)	#Select input for number of plasma acetaminophen concentrations measured
+						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 1)	#Select input for number of plasma acetaminophen concentrations measured
 					)	#Brackets closing "column"
 				),	#Brackets closing "fixedRow"
 				fixedRow(
@@ -131,9 +131,9 @@ body <-
 						)  #Brackets closing "conditionalPanel"
 					),  #Brackets closing "column"
 					column(4,
-						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 500),	#Numeric input for first plasma acetaminophen concentration
+						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 100),	#Numeric input for first plasma acetaminophen concentration
 						conditionalPanel(condition = "input.NPAC > 1",
-							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 150)	#Numeric input for second plasma acetaminophen concentration
+							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 70)	#Numeric input for second plasma acetaminophen concentration
 						)  #Brackets closing "conditionalPanel"
 					)  #Brackets closing "column"
 				),  #Brackets closing "fixedRow"

@@ -20,9 +20,13 @@
   theme_bw2 <- theme_set(theme_bw(base_size = 16))
 #------------------------------------------------------------------------------------------
 #Define time sequence
-  TIME.base <- seq(from = 0,to = 30,by = 0.25)
+  TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
+                seq(from = 4,to = 12,by = 2),
+                seq(from = 16,to = 32,by = 8))
 #Set the number of individuals that make up the 95% prediction intervals
   n <- 1000
+#Define a time sequence for the 95% prediction intervals - shorter length than TIME.base for speed
+  TIME.ci <- c(0,1,2,3,4,8,12,16,20,24,32)
 #Set the number of individuals for population PK modelling example (simulation)
   nsim <- 100
 #95% prediction interval functions

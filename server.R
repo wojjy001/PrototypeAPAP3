@@ -50,7 +50,7 @@ shinyServer(function(input,output,session) {
 			value = 0,
 			{
 			input.data <- Rinput.data()  #Read in the reactive "input.data"
-			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]
+			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
 			bayes.data <- bayesian.function(input.data)
 			}  #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
@@ -69,7 +69,7 @@ shinyServer(function(input,output,session) {
 		if (input$CI95 == TRUE) { #Checkbox input that controls when to calculating empirical 95% confidence intervals
 			isolate({
 				withProgress(
-					message = "Simulating 95% confidence intervals...",
+					message = "Simulating 95% prediction intervals...",
 					value = 0,
 					{
 					  input.data <- Rinput.data() #Read in reactive "input.data"
@@ -87,8 +87,8 @@ shinyServer(function(input,output,session) {
 						})
 						#Calculate concentrations at each time-point for each individual
 						ci.data <- lapply(1:n, function(x) {
-						  pop.data <- data_frame(TIME = TIME.base,
-						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.base)-1)),
+						  pop.data <- data_frame(TIME = TIME.ci,
+						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
 						                        SDAC = input.data$SDAC[1],
 						                        WT = input$WT,
 						                        ETA1 = ETA.list[[x]][[1]],
@@ -198,7 +198,7 @@ shinyServer(function(input,output,session) {
 		if (input$POP_LINE == TRUE) {
 			plotobj3 <- plotobj3 + geom_smooth(aes(x = TIME,y = DV),data = conc.sim.data,colour = "black",method = loess,se = F,size = 1)
 		}
-		
+
 		#Axes
 		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
 		plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
@@ -235,12 +235,12 @@ shinyServer(function(input,output,session) {
 		if (input$RMN == TRUE) {
 			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
 		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
 		if (input$CI95 == TRUE) {
-			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
+			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data

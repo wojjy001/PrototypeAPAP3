@@ -1,0 +1,12 @@
+?library(shiny)
+library(shiny)
+?runApp
+25000*0.497758
+TIME.base <- c(seq(from = 0,to = 3,by = 0.5),#
+                seq(from = 4,to = 12,by = 2),#
+                seq(from = 16,to = 32,by = 8))
+length(TIME.base)
+dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #
+  setwd(dir)  #
+  library(shiny)  #
+  runApp()
