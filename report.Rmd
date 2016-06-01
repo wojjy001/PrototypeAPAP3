@@ -4,7 +4,6 @@ output:
   pdf_document:
     fig_height: 3
     fig_width: 5
-    reference_docx: mystyles.docx
 ---
 
 ### `r paste(paste(input$FNAME,input$LNAME,sep=" "),paste("(MRN: ",input$MRN,")",sep = ""),sep=" ")`

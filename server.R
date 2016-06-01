@@ -388,7 +388,7 @@ shinyServer(function(input,output,session) {
 			owd <- setwd(tempdir())
 			on.exit(setwd(owd))
 			file.copy(src,"report.Rmd")
-			Sys.setenv(RSTUDIO_PANDOC = pandocdir)
+			#Sys.setenv(RSTUDIO_PANDOC = pandocdir)	#Required if running the application locally
 			out <- render("report.Rmd",pdf_document(fig_width = 5,fig_height = 3),envir = inputEnv)
 			#out <- render("report.Rmd",word_document(fig_width = 4,fig_height = 2,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
 			file.rename(out,file)
