@@ -187,10 +187,14 @@ shinyServer(function(input,output,session) {
 	})	#Brackets closing "renderText"
 
 	output$DEMOplotOutput2 <- renderPlot({
+
 		plotobj3 <- NULL
 		plotobj3 <- ggplot()
 
 		if (input$POPPK == 1) {
+			#Make ID as a factor so each individual is a different colour
+			conc.sim.data$ID <- as.factor(conc.sim.data$ID)
+
 			#Population's observed concentrations
 			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
 
@@ -210,14 +214,38 @@ shinyServer(function(input,output,session) {
 			set.seed(123456)
 			IDrand <- sample(unique(conc.sim.data$ID),4)
 			conc.sim.data.rand <- conc.sim.data[conc.sim.data$ID %in% IDrand,]
+			conc.sim.data.rand$ID <- as.factor(conc.sim.data.rand$ID)
 
+			#Plot observations
 			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
 
-			plotobj3 <- plotobj3 + facet_wrap(~ID,scales = "free_y")
-
+			#Plot individual predictions
 			if (input$IND_LINES == TRUE) {
 				plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
 			}
+
+			#Display individual parameter values
+			if (input$IND_PARM == TRUE) {
+				label.data <- ddply(conc.sim.data.rand[c("ID","AMT","CLi","Vi","KAi","Fi")], .(ID), oneperID)
+				label.data[, c("CLi","Vi","KAi")] <- lapply(label.data[, c("CLi","Vi","KAi")],round,digits = 2)
+
+				if (input$DEMO_LOGS == FALSE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+				}
+
+				if (input$DEMO_LOGS == TRUE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+				}
+			}
+
+			#Facet for each individual
+			plotobj3 <- plotobj3 + facet_wrap(~ID)
 		}
 
 		#Axes

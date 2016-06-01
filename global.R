@@ -34,6 +34,8 @@
   CI95hi <- function(x) quantile(x,probs = 0.975)
 #Set seed for reproducible numbers
   set.seed(123456)
+#One per ID function
+  oneperID <- function(x) head(x,1)
 #------------------------------------------------------------------------------------------
 #Population model parameters
   #THETAs
@@ -127,7 +129,6 @@
   input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
   conc.sim.data <- conc.function(input.sim.data)
   conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
-  conc.sim.data$ID <- as.factor(conc.sim.data$ID)
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
