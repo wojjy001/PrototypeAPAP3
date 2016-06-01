@@ -50,10 +50,10 @@
     COVPROD_KA3 <- 0.0222383  #Effect of product category on KA; para+other
     COVPROD_KA4 <- -0.348731  #Effect of product category on KA; para ER
   #OMEGAs (as SDs)
-    PPVCL <- 0.035022858 #PPV for CL
-    PPVV <- 0.0054543827	#PPV for V
-    PPVKA <- 0.45608978	#PPV for KA
-    PPVF <- 0.52338442	#PPV for F
+    PPVCL <- sqrt(0.035022858) #PPV for CL
+    PPVV <- sqrt(0.0054543827)	#PPV for V
+    PPVKA <- sqrt(0.45608978)	#PPV for KA
+    PPVF <- sqrt(0.52338442)	#PPV for F
   #SIGMA (as SDs)
     ERRPRO <- 0.318253  #Proportional residual error
 #------------------------------------------------------------------------------------------
