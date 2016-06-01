@@ -196,7 +196,7 @@ body <-
 				h4("Activated Charcoal Information:"),
 				checkboxInput("SDAC","Was single-dose activated charcoal administered?",value = FALSE,width = 500),	#Checkbox input for single-dose activated charcoal administration
 				conditionalPanel(condition = "input.SDAC",
-					h5(strong("Time of administration (hours post-acetaminophen ingestion):")),
+					h5(strong("Time of administration (hours post-paracetamol ingestion):")),
 					numericInput("SDAC_TIME","",min = 0,max = 40,value = 4)
 				)	#Brackets closing "conditionalPanel"
 			),  #Brackets closing "tabItem" for "dosing"
