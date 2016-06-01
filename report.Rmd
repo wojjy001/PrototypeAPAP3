@@ -1,9 +1,9 @@
 ---
 title: "Paracetamol Overdose Summary"
 output:
-  word_document:
-    fig_height: 2
-    fig_width: 4
+  pdf_document:
+    fig_height: 3
+    fig_width: 5
     reference_docx: mystyles.docx
 ---
 
@@ -12,7 +12,7 @@ Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")`
 
 ````{r, echo=FALSE}
 #Custom ggplot2 theme for the document
-  theme_bw2 <- theme_set(theme_bw(base_size = 6))
+  theme_bw2 <- theme_set(theme_bw(base_size = 10))
 ````
 
 ### Patient and paracetamol information
@@ -60,7 +60,7 @@ Single-dose activated charcoal (SDAC)               | `r SDAC`
 Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 
-### Sampled plasma paracetamol concentrations (PAC)
+### Sampled plasma paracetamol concentrations
 
 
 **Time Since Acute Ingestion (hours)**              | **Concentration (mg/L)**
@@ -96,7 +96,7 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
   #95% prediction intervals
   if (input$CI95 == TRUE) {
-    plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+    plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
   }
 
   #Individual patient data
