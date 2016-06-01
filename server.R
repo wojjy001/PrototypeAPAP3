@@ -236,7 +236,7 @@ shinyServer(function(input,output,session) {
 			}
 
 			#Plot observations
-			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)			
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
 
 			#Display individual parameter values
 			if (input$IND_PARM == TRUE) {
@@ -309,22 +309,24 @@ shinyServer(function(input,output,session) {
 		}
 
 	  #Individual patient data
-		plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+		if (input$IND_BAY == TRUE) {
+			plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+		}
 		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
 		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
 		print(plotobj2)
 	})	#Brackets closing "renderPlot"
@@ -338,8 +340,30 @@ shinyServer(function(input,output,session) {
 
 	output$NACtextOutput <- renderText({
 		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
-		if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-		if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		if (input$IND_BAY == FALSE) {
+			if (input$NPAC == 1) {
+				if (input$PAC1 >= rule.data$CONCrm[rule.data$TIME == input$TIME1]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME1 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+			if (input$NPAC == 2) {
+				if (input$PAC2 >= rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME2 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else if (input$PAC1 < rule.data$CONCrm[rule.data$TIME == input$TIME1] & input$PAC2 < rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+		}
+		if (input$IND_BAY == TRUE) {
+			if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
 		recommendation.text
 	})	#Brackets closing "renderText"
 
@@ -366,7 +390,7 @@ shinyServer(function(input,output,session) {
 			file.copy(src,"report.Rmd")
 			Sys.setenv(RSTUDIO_PANDOC = pandocdir)
 			#out <- render("report.Rmd",pdf_document(fig_width = 8,fig_height = 6),envir = inputEnv)
-			out <- render("report.Rmd",word_document(fig_width = 8,fig_height = 6,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
+			out <- render("report.Rmd",word_document(fig_width = 4,fig_height = 2,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
 			file.rename(out,file)
 		}
 	)	#Brackets closing "downloadHandler"

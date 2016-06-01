@@ -202,35 +202,37 @@ body <-
 			),  #Brackets closing "tabItem" for "dosing"
 			tabItem(tabName = "results",
 				box(
+          fixedRow(
+            column(12,
+    					h4(strong("Individual Paracetamol Concentration-Time Profile")),
+    					plotOutput("CONCplotOutput"),
+    					br(),	#Add a space between plot and "warning text"
+    					textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
+            ),  #Brackets closing "column"
+  					align = "center"
+          ),  #Brackets closing "fixedRow"
 					fixedRow(
-						column(7,
-							h4(strong("Individual Paracetamol Concentration-Time Profile")),
-							plotOutput("CONCplotOutput"),
-							br(),	#Add a space between plot and "warning text"
-							textOutput("RSEtextOutput"),	#Sentence that appears if the precision of parameter estimates is poor
-							align = "center",
-							fixedRow(
-								column(6,
-									checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
-									checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
-								),  #Brackets closing "column"
-								column(6,
-									checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
-								),	#Brackets closing "column"
-								align = "left"
-							)	#Brackets closing "fixedRow"
+						column(6,
+							checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
+							checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
+						),  #Brackets closing "column"
+						column(6,
+              checkboxInput("IND_BAY","Show Bayesian forecast",value = FALSE),  #Checkbox input for plotting empirical Bayesian prediction for the individual
+              conditionalPanel(condition = "input.IND_BAY",
+							  checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
+              ) #Brackets closing "conditionalPanel"
 						),	#Brackets closing "column"
-						column(5,
-							fixedRow(
-								h4(strong("N-acetylcysteine Decisions")),
-								textOutput("NACtextOutput"),
-								hr(),
-								downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
-								align = "center"
-							)	#Brackets closing "fixedRow"
-						)	#Brackets closing "column"
+						align = "left"
 					),	#Brackets closing "fixedRow"
-					width = 12,
+          hr(),
+					fixedRow(
+						h4(strong("N-acetylcysteine Decisions")),
+						textOutput("NACtextOutput"),
+						hr(),
+						downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
+						align = "center"
+					),	#Brackets closing "fixedRow"
+					width = 8,
 					status = "primary"
 				)	#Brackets closing "box"
 			) #Brackets closing "tabItem" for "results"
