@@ -60,11 +60,11 @@ body <-
                 ),  #Brackets closing "column"
                 conditionalPanel(condition = "input.DEMO_TYPE == 1",
                   column(4,
-                    numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4,width = 200)  #Numeric input for demonstration time
+                    numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
                     # Demonstration example: t = 6
                   ),  #Brackets closing "column"
                   column(4,
-                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150,width = 200)  #Numeric input for demonstration concentration
+                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
                     # Demonstration example: conc = 70
                   ) #Brackets closing "column"
                 ),  #Brackets closing "conditionalPanel"
@@ -93,7 +93,7 @@ body <-
         fixedRow(
           column(4,
             h3("Non-linear mixed-effect modelling"),
-            h4("- Fixed effects parameters describe the population average"),
+            h4("- Fixed effects parameters describe the population average and covariate influences"),
             h4("- Random effect parameters describe how and how much individuals vary from the population average"),
             h4("- Parameters estimated using maximum likelihood estimation"),
             h3("Previous model provides useful information regarding the pharmacokinetics of paracetamol following an acute overdose in a population, i.e., the quantitative effect of:"),

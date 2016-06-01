@@ -230,13 +230,13 @@ shinyServer(function(input,output,session) {
 			conc.sim.data.rand <- conc.sim.data[conc.sim.data$ID %in% IDrand,]
 			conc.sim.data.rand$ID <- as.factor(conc.sim.data.rand$ID)
 
-			#Plot observations
-			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
-
 			#Plot individual predictions
 			if (input$IND_LINES == TRUE) {
 				plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
 			}
+
+			#Plot observations
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)			
 
 			#Display individual parameter values
 			if (input$IND_PARM == TRUE) {
