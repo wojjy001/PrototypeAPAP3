@@ -92,17 +92,27 @@ body <-
         h2(strong("Role of Population Pharmacokinetic Modelling")),
         fixedRow(
           column(4,
-            h3("Non-linear mixed-effect modelling"),
-            h4("- Fixed effects parameters describe the population average and covariate influences"),
-            h4("- Random effect parameters describe how and how much individuals vary from the population average"),
-            h4("- Parameters estimated using maximum likelihood estimation"),
-            h3("Previous model provides useful information regarding the pharmacokinetics of paracetamol following an acute overdose in a population, i.e., the quantitative effect of:"),
-            h4("- Differences in amounts ingested"),
-            h4("- Differences in products ingested"),
-            h4("- Differences in body weights"),
-            h4("- Administration of single-dose activated charcoal"),
-            h4("- Unexplained differences between individuals"),
-            h4("- Unexplained differences within an individual")
+            checkboxInput("NLME",h3("Non-linear mixed-effect modelling"),value = FALSE,width = 500),
+            conditionalPanel(condition = "input.NLME",
+              h4("- Fixed effects parameters describe the population average and covariate influences"),
+              h4("- Random effect parameters describe how and how much individuals vary from the population average"),
+              h4("- Parameters estimated using maximum likelihood estimation")
+            ), #Brackets closing "conditionalPanel"
+            checkboxInput("PRIOR",h3("Previous model provides useful information regarding the pharmacokinetics of paracetamol following an acute overdose in a population, i.e., the quantitative effect of:"),value = FALSE,width = 500),
+            conditionalPanel(condition = "input.PRIOR",
+              h4("- Differences in amounts ingested"),
+              h4("- Differences in products ingested"),
+              h4("- Differences in body weights"),
+              h4("- Administration of single-dose activated charcoal"),
+              h4("- Unexplained differences between individuals"),
+              h4("- Unexplained differences within an individual")
+            ),  #Brackets closing "conditionalPanel"
+            checkboxInput("BAY_FOR",h3("Bayesian forecasting"),value = FALSE,width = 500),
+            conditionalPanel(condition = "input.BAY_FOR",
+              h4("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
+              h4("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
+              h4(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
+            ) #Brackets closing "conditionalPanel"
           ),  #Brackets closing "column"
           column(8,
             box(
