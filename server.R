@@ -207,6 +207,20 @@ shinyServer(function(input,output,session) {
 			if (input$POP_CI == TRUE) {
 				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
 			}
+
+			#Show population parameter values
+			if (input$POP_PARM == TRUE) {
+				if (input$DEMO_LOGS == FALSE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.8,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+				}
+				if (input$DEMO_LOGS == TRUE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+				}
+			}
 		}
 
 		if (input$POPPK == 2) {

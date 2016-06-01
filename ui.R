@@ -114,16 +114,19 @@ body <-
                   ),  #Brackets closing "column"
                   column(4,
                     checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
-                  ) #Brackets closing "column"
+                  ), #Brackets closing "column"
+                  column(4,
+                    checkboxInput("POP_PARM","Show population parameter values",value = FALSE)
+                  )  #Brackets closing "column"
                 ) #Brackets closing "fixedRow"
               ),  #Brackets closing "conditionalPanel"
               conditionalPanel(condition = "input.POPPK == 2",
                 fixedRow(
                   column(4,
-                    checkboxInput("IND_LINES","Plot individual predictions",value = FALSE)
+                    checkboxInput("IND_LINES","Plot individual predictions",value = TRUE)
                   ), #Brackets closing "column"
                   column(4,
-                    checkboxInput("IND_PARM","Show individual parameter values",value = FALSE)
+                    checkboxInput("IND_PARM","Show individual parameter values",value = TRUE)
                   ) #Brackets closing "column"
                 ) #Brackets closing "fixedRow"
               ),  #Brackets closing "conditionalPanel"
