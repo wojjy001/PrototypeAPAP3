@@ -1,4 +1,4 @@
-#global.R script for PrototypeAPAP2
+#global.R script for PrototypeAPAP3
 #Objects that are not reactive are written here
 #This also a safe place for functions that are then used in server.R
 #------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
   	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
     pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
-  theme_bw2 <- theme_set(theme_bw(base_size = 14))
+  theme_bw2 <- theme_set(theme_bw(base_size = 16))
 #------------------------------------------------------------------------------------------
 #Define time sequence
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
@@ -25,9 +25,17 @@
                 seq(from = 16,to = 32,by = 8))
 #Set the number of individuals that make up the 95% prediction intervals
   n <- 1000
+#Define a time sequence for the 95% prediction intervals - shorter length than TIME.base for speed
+  TIME.ci <- c(0,1,2,3,4,8,12,16,20,24,32)
+#Set the number of individuals for population PK modelling example (simulation)
+  nsim <- 100
 #95% prediction interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
+#Set seed for reproducible numbers
+  set.seed(123456)
+#One per ID function
+  oneperID <- function(x) head(x,1)
 #------------------------------------------------------------------------------------------
 #Population model parameters
   #THETAs
@@ -42,10 +50,10 @@
     COVPROD_KA3 <- 0.0222383  #Effect of product category on KA; para+other
     COVPROD_KA4 <- -0.348731  #Effect of product category on KA; para ER
   #OMEGAs (as SDs)
-    PPVCL <- 0.035022858 #PPV for CL
-    PPVV <- 0.0054543827	#PPV for V
-    PPVKA <- 0.45608978	#PPV for KA
-    PPVF <- 0.52338442	#PPV for F
+    PPVCL <- sqrt(0.035022858) #PPV for CL
+    PPVV <- sqrt(0.0054543827)	#PPV for V
+    PPVKA <- sqrt(0.45608978)	#PPV for KA
+    PPVF <- sqrt(0.52338442)	#PPV for F
   #SIGMA (as SDs)
     ERRPRO <- 0.318253  #Proportional residual error
 #------------------------------------------------------------------------------------------
@@ -78,6 +86,49 @@
       }
       df
     }
+#------------------------------------------------------------------------------------------
+#Simulate a population according to the PK model described
+#Randomly sample individuals at different times for various amounts
+#Simulate different amounts ingested, different body weights and different products
+#Just make SDAC == 0
+  ID <- 1:nsim  #ID sequence
+  WT <- rlnorm(nsim,meanlog = log(70),sdlog = 0.3)  #Weight (kg)
+  PROD <- rbinom(nsim,size = 5,prob = 0.2) #Product categories
+  AMT <- rlnorm(nsim,meanlog = log(20),sdlog = 0.3)  #Estimated amount ingested (g)
+  sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
+  #Collate into a data frame
+  input.patient.data <- data.frame(ID,  #ID sequence
+                                  TIME = 0, #Placeholder for the time column
+                                  nPAC = sample.lengths,
+                                  AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
+                                  PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
+                                  WT,  #Patient's weight (kg)
+                                  SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+                                  PROD,  #Product category ingested
+                                  ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
+                                  ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
+                                  ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
+                                  ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
+                                  CLi = POPCL,
+                                  Vi = POPV,
+                                  KAi = POPKA,
+                                  Fi = POPF)
+  input.time.data <- lapply(input.patient.data,rep.int,times = length(TIME.base))
+  input.time.data <- as.data.frame(input.time.data)
+  input.time.data <- input.time.data[with(input.time.data, order(input.time.data$ID)),]
+  input.time.data$TIME <- TIME.base
+  input.time.data$AMT[input.time.data$TIME != 0] <- 0
+#Make a data frame of time-points - randomly generated for each individual
+  sample.times.function <- function(input.data) {
+    nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
+    sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],nPAC) #Sample nPAC time-points from TIME.base
+    input.data$SAMPLE <- 0
+    input.data$SAMPLE[input.data$TIME %in% sample.times] <- 1
+    input.data
+  }
+  input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
+  conc.sim.data <- conc.function(input.sim.data)
+  conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
@@ -145,9 +196,10 @@
 #------------------------------------------------------------------------------------------
 #Functions for applying various decision rules to Bayes estimated concentration profiles
   TIME <- 4:24  #Times that the Rumack-Matthew nomogram can only be applied to
+  TIME.rm <- seq(from = 0,to = max(TIME.base),by = 0.25)
 #Rumack-Matthew Nomogram
-  CONCrm <- 300*exp(-log(2)/4*TIME.base)
-  rule.data <- data.frame(TIME = TIME.base,CONCrm)
+  CONCrm <- 300*exp(-log(2)/4*TIME.rm)
+  rule.data <- data.frame(TIME = TIME.rm,CONCrm)
 
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC

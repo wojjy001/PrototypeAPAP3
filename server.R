@@ -1,4 +1,4 @@
-#server.R script for PrototypeAPAP2
+#server.R script for PrototypeAPAP3
 #Reactive objects (i.e., those dependent on widget input) are written here
 #------------------------------------------------------------------------------------------
 #Define the "server" part of the Shiny application
@@ -50,6 +50,7 @@ shinyServer(function(input,output,session) {
 			value = 0,
 			{
 			input.data <- Rinput.data()  #Read in the reactive "input.data"
+			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
 			bayes.data <- bayesian.function(input.data)
 			}  #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
@@ -68,7 +69,7 @@ shinyServer(function(input,output,session) {
 		if (input$CI95 == TRUE) { #Checkbox input that controls when to calculating empirical 95% confidence intervals
 			isolate({
 				withProgress(
-					message = "Simulating 95% confidence intervals...",
+					message = "Simulating 95% prediction intervals...",
 					value = 0,
 					{
 					  input.data <- Rinput.data() #Read in reactive "input.data"
@@ -86,8 +87,8 @@ shinyServer(function(input,output,session) {
 						})
 						#Calculate concentrations at each time-point for each individual
 						ci.data <- lapply(1:n, function(x) {
-						  pop.data <- data_frame(TIME = TIME.base,
-						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.base)-1)),
+						  pop.data <- data_frame(TIME = TIME.ci,
+						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
 						                        SDAC = input.data$SDAC[1],
 						                        WT = input$WT,
 						                        ETA1 = ETA.list[[x]][[1]],
@@ -138,6 +139,142 @@ shinyServer(function(input,output,session) {
 	############
 	##_OUTPUT_##
 	############
+	output$DEMOplotOutput1 <- renderPlot({
+		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
+		max.ribbon <- max(c(input$DEMO_PAC,rule.data$CONCrm[rule.data$TIME == 4]))+20
+		#Calculate the maximum plottable value for y-axis
+		max.conc <- input$DEMO_PAC+20
+
+		plotobj1 <- NULL
+		plotobj1 <- ggplot()
+
+		#Rumack-Matthew Nomogram
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
+
+		#Demonstration free input concentrations
+		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 4)
+
+		#Demonstration Opioid-combination concentrations
+		if (input$DEMO_TYPE == 2) {
+			plotobj1 <- plotobj1 + geom_point(aes(x = 12,y = 50),size = 4)
+		}
+
+		#Axes
+		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
+		if (input$DEMO_LOG == FALSE) {
+			plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+		}
+		if (input$DEMO_LOG == TRUE) {
+			plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		}
+		print(plotobj1)
+	})	#Brackets closing "renderPlot"
+
+	output$DEMOtextOutput1 <- renderText({
+		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME]) {
+			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		} else if (input$DEMO_TIME < 4) {
+			text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+		} else {
+			text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
+		if (input$DEMO_TYPE == 2) {
+			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
+		text
+	})	#Brackets closing "renderText"
+
+	output$DEMOplotOutput2 <- renderPlot({
+
+		plotobj3 <- NULL
+		plotobj3 <- ggplot()
+
+		if (input$POPPK == 1) {
+			#Make ID as a factor so each individual is a different colour
+			conc.sim.data$ID <- as.factor(conc.sim.data$ID)
+
+			#Population's observed concentrations
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
+
+			#Plot population median line
+			if (input$POP_MED == TRUE) {
+				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
+			}
+
+			#Plot population 95% prediction intervals
+			if (input$POP_CI == TRUE) {
+				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
+			}
+
+			#Show population parameter values
+			if (input$POP_PARM == TRUE) {
+				if (input$DEMO_LOGS == FALSE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.8,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+				}
+				if (input$DEMO_LOGS == TRUE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+				}
+			}
+		}
+
+		if (input$POPPK == 2) {
+			#Sample 4 random individuals from conc.sim.data
+			set.seed(123456)
+			IDrand <- sample(unique(conc.sim.data$ID),4)
+			conc.sim.data.rand <- conc.sim.data[conc.sim.data$ID %in% IDrand,]
+			conc.sim.data.rand$ID <- as.factor(conc.sim.data.rand$ID)
+
+			#Plot individual predictions
+			if (input$IND_LINES == TRUE) {
+				plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
+			}
+
+			#Plot observations
+			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
+
+			#Display individual parameter values
+			if (input$IND_PARM == TRUE) {
+				label.data <- ddply(conc.sim.data.rand[c("ID","AMT","CLi","Vi","KAi","Fi")], .(ID), oneperID)
+				label.data[, c("CLi","Vi","KAi")] <- lapply(label.data[, c("CLi","Vi","KAi")],round,digits = 2)
+
+				if (input$DEMO_LOGS == FALSE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+				}
+
+				if (input$DEMO_LOGS == TRUE) {
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+				}
+			}
+
+			#Facet for each individual
+			plotobj3 <- plotobj3 + facet_wrap(~ID)
+		}
+
+		#Axes
+		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,32))
+		if (input$DEMO_LOGS == FALSE) {
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+		}
+		if (input$DEMO_LOGS == TRUE) {
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n",breaks = c(1,10,100,1000))
+		}
+		plotobj3 <- plotobj3 + theme(legend.position = "none")
+
+		print(plotobj3)
+	})	#Brackets closing "renderPlot"
+
 	output$CONCplotOutput <- renderPlot({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		conc.data <- Rconc.data()  #Read in reactive "conc.data"
@@ -156,40 +293,42 @@ shinyServer(function(input,output,session) {
 		}
 
 		#Start plotting
-		plotobj1 <- NULL
-		plotobj1 <- ggplot()
+		plotobj2 <- NULL
+		plotobj2 <- ggplot()
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-		  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
 		if (input$CI95 == TRUE) {
-			plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
+			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
-		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
-		plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+		if (input$IND_BAY == TRUE) {
+			plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+		}
+		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
-		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
-		print(plotobj1)
+		print(plotobj2)
 	})	#Brackets closing "renderPlot"
 
 	output$RSEtextOutput <- renderText({
@@ -201,8 +340,30 @@ shinyServer(function(input,output,session) {
 
 	output$NACtextOutput <- renderText({
 		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
-		if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-		if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		if (input$IND_BAY == FALSE) {
+			if (input$NPAC == 1) {
+				if (input$PAC1 >= rule.data$CONCrm[rule.data$TIME == input$TIME1]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME1 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+			if (input$NPAC == 2) {
+				if (input$PAC2 >= rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME2 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else if (input$PAC1 < rule.data$CONCrm[rule.data$TIME == input$TIME1] & input$PAC2 < rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+		}
+		if (input$IND_BAY == TRUE) {
+			if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
 		recommendation.text
 	})	#Brackets closing "renderText"
 
@@ -212,7 +373,7 @@ shinyServer(function(input,output,session) {
 	#Generate a document of patient summary results
 	output$downloadReport <- downloadHandler(
 		filename = function() {
-			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"Acetaminophen_Report.docx",sep = "_")
+			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"Paracetamol_Report.pdf",sep = "_")
 		},
 		content = function(file) {
 			src <- normalizePath("report.Rmd")
@@ -227,9 +388,9 @@ shinyServer(function(input,output,session) {
 			owd <- setwd(tempdir())
 			on.exit(setwd(owd))
 			file.copy(src,"report.Rmd")
-			Sys.setenv(RSTUDIO_PANDOC = pandocdir)
-			#out <- render("report.Rmd",pdf_document(fig_width = 8,fig_height = 6),envir = inputEnv)
-			out <- render("report.Rmd",word_document(fig_width = 8,fig_height = 6,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
+			#Sys.setenv(RSTUDIO_PANDOC = pandocdir)	#Required if running the application locally
+			out <- render("report.Rmd",pdf_document(fig_width = 5,fig_height = 3),envir = inputEnv)
+			#out <- render("report.Rmd",word_document(fig_width = 4,fig_height = 2,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
 			file.rename(out,file)
 		}
 	)	#Brackets closing "downloadHandler"
