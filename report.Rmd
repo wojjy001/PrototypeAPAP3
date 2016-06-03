@@ -94,7 +94,7 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 	}
 
   #95% prediction intervals
-  if (input$CI95 == TRUE) {
+  if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
     plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
   }
 
@@ -122,7 +122,9 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 	#Display warning text if precision of at least one parameter is poor
 	warning.text <- " "
-	if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
+  if (input$IND_BAY == TRUE) {
+  	if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend examining 95% prediction intervals before making a decision."
+  }
 ```
 
 `r warning.text`
