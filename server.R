@@ -183,38 +183,37 @@ shinyServer(function(input,output,session) {
 	})	#Brackets closing "renderText"
 
 	output$DEMOplotOutput2 <- renderPlot({
-
-		plotobj3 <- NULL
-		plotobj3 <- ggplot()
+		plotobj2 <- NULL
+		plotobj2 <- ggplot()
 
 		if (input$POPPK == 1) {
 			#Make ID as a factor so each individual is a different colour
 			conc.sim.data$ID <- as.factor(conc.sim.data$ID)
 
 			#Population's observed concentrations
-			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
+			plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
 
 			#Plot population median line
 			if (input$POP_MED == TRUE) {
-				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
+				plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
 			}
 
 			#Plot population 95% prediction intervals
 			if (input$POP_CI == TRUE) {
-				plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
+				plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
 			}
 
 			#Show population parameter values
 			if (input$POP_PARM == TRUE) {
 				if (input$DEMO_LOGS == FALSE) {
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.8,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500*0.8,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
 				}
 				if (input$DEMO_LOGS == TRUE) {
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1000,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 300,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
 				}
 			}
 		}
@@ -228,11 +227,11 @@ shinyServer(function(input,output,session) {
 
 			#Plot individual predictions
 			if (input$IND_LINES == TRUE) {
-				plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
+				plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
 			}
 
 			#Plot observations
-			plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
+			plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
 
 			#Display individual parameter values
 			if (input$IND_PARM == TRUE) {
@@ -240,35 +239,35 @@ shinyServer(function(input,output,session) {
 				label.data[, c("CLi","Vi","KAi")] <- lapply(label.data[, c("CLi","Vi","KAi")],round,digits = 2)
 
 				if (input$DEMO_LOGS == FALSE) {
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
 				}
 
 				if (input$DEMO_LOGS == TRUE) {
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj3 <- plotobj3 + geom_text(aes(x = 24,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
 				}
 			}
 
 			#Facet for each individual
-			plotobj3 <- plotobj3 + facet_wrap(~ID)
+			plotobj2 <- plotobj2 + facet_wrap(~ID)
 		}
 
 		#Axes
-		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,32))
+		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,32))
 		if (input$DEMO_LOGS == FALSE) {
-			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n")
 		}
 		if (input$DEMO_LOGS == TRUE) {
-			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n",breaks = c(1,10,100,1000))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentrations (mg/L)\n",breaks = c(1,10,100,1000))
 		}
-		plotobj3 <- plotobj3 + theme(legend.position = "none")
+		plotobj2 <- plotobj2 + theme(legend.position = "none")
 
-		print(plotobj3)
+		print(plotobj2)
 	})	#Brackets closing "renderPlot"
 
 	output$CONCplotOutput <- renderPlot({
@@ -289,42 +288,42 @@ shinyServer(function(input,output,session) {
 		}
 
 		#Start plotting
-		plotobj2 <- NULL
-		plotobj2 <- ggplot()
+		plotobj3 <- NULL
+		plotobj3 <- ggplot()
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
+			plotobj3 <- plotobj3 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		  plotobj3 <- plotobj3 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		  plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
-		if (input$CI95 == TRUE) {
-			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
+			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
 		if (input$IND_BAY == TRUE) {
-			plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+			plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
 		}
-		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
-		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
-		print(plotobj2)
+		print(plotobj3)
 	})	#Brackets closing "renderPlot"
 
 	output$RSEtextOutput <- renderText({
