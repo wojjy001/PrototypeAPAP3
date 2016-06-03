@@ -1,4 +1,4 @@
-#ui.R script for PrototypeAPAP2
+#ui.R script for PrototypeAPAP3
 #The user-interface and widget input for the Shiny application is defined here
 #Sends user-defined input to server.R, calls created output from server.R
 #Now using shinydashboard for the user-interface
@@ -6,17 +6,19 @@
 #Application's header
 header <-
   dashboardHeader(
-		title = "Acetaminophen Overdose Application",
-		titleWidth = 400
+		title = "To Antidote or Not?",
+		titleWidth = 250
 	)	#Brackets closing "dashboardHeader"
 #Application's sidebar
 sidebar <-
 	dashboardSidebar(
 		width = 250,	#Width of sidebar the same as width of header
 		sidebarMenu(
-			menuItem("Patient Information",tabName = "patient",icon = icon("child")),
-			menuItem("Acetaminophen Information",tabName = "acetaminophen",icon = icon("medkit")),
-			menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
+      menuItem("Application",tabName = "app",icon = icon("chrome"),
+        menuSubItem("Patient Information",tabName = "patient",icon = icon("child")),
+        menuSubItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
+			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
+      ) #Brackets closing "menuItem"
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -26,6 +28,9 @@ body <-
 			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
 		),
 		tabItems(
+      tabItem(tabName = "app"
+        #Leave this blank so nothing happens when this tab is clicked
+      ),  #Brackets closing "tabItem" for "app"
 			tabItem(tabName = "patient",
 				h4("Patient Information:"),	#Heading for Patient Information section
 				numericInput("MRN","Medical Record Number (MRN):",value = 000000,step = 1),  #Numeric input for patient's medical record number (or unit record number)
@@ -41,15 +46,15 @@ body <-
 					)	#Brackets closing "column"
 				)	#Brackets closing "fixedRow"
 			),	#Brackets closing "tabItem" for "patient"
-			tabItem(tabName = "acetaminophen",
-				h4("Acetaminophen Information:"),	#Heading for Acetaminophen Information section
-				dateInput("DDATE", "Date of Acetaminophen Overdose (DD-MM-YYYY):",value = NULL,format = "dd-mm-yyyy",startview = "month"),
+			tabItem(tabName = "para-info",
+				h4("Overdose Information:"),	#Heading for Overdose Information section
+				dateInput("DDATE", "Date of Paracetamol Overdose (DD-MM-YYYY):",value = NULL,format = "dd-mm-yyyy",startview = "month"),
 				numericInput("AMT","Estimated amount ingested (g):",min = 0,value = 25),	#Numeric input for estimated acetaminophen amount ingested
-				selectInput("PROD","Product type ingested:",choices = list("Acetaminophen alone" = 1,"Acetaminophen and antihistamine" = 2,"Acetaminophen and opioid" = 3,"Acetaminophen and other" = 4,"Extended-release acetaminophen" = 5),selected = 1),	#Select input for product category ingested
+				selectInput("PROD","Product type ingested:",choices = list("Paracetamol alone" = 1,"Paracetamol and antihistamine" = 2,"Paracetamol and opioid" = 3,"Paracetamol and other" = 4,"Extended-release paracetamol" = 5),selected = 1),	#Select input for product category ingested
 				fixedRow(
 					column(8,
-						h5(strong("Number of plasma acetaminophen concentrations sampled:")),
-						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 2)	#Select input for number of plasma acetaminophen concentrations measured
+						h5(strong("Number of plasma paracetamol concentrations sampled:")),
+						selectInput("NPAC","",choices = list("1" = 1,"2" = 2),selected = 1)	#Select input for number of plasma acetaminophen concentrations measured
 					)	#Brackets closing "column"
 				),	#Brackets closing "fixedRow"
 				fixedRow(
@@ -60,50 +65,57 @@ body <-
 						)  #Brackets closing "conditionalPanel"
 					),  #Brackets closing "column"
 					column(4,
-						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 500),	#Numeric input for first plasma acetaminophen concentration
+						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 100),	#Numeric input for first plasma acetaminophen concentration
 						conditionalPanel(condition = "input.NPAC > 1",
-							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 150)	#Numeric input for second plasma acetaminophen concentration
+							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 70)	#Numeric input for second plasma acetaminophen concentration
 						)  #Brackets closing "conditionalPanel"
 					)  #Brackets closing "column"
 				),  #Brackets closing "fixedRow"
 				h4("Activated Charcoal Information:"),
 				checkboxInput("SDAC","Was single-dose activated charcoal administered?",value = FALSE,width = 500),	#Checkbox input for single-dose activated charcoal administration
 				conditionalPanel(condition = "input.SDAC",
-					h5(strong("Time of administration (hours post-acetaminophen ingestion):")),
+					h5(strong("Time of administration (hours post-paracetamol ingestion):")),
 					numericInput("SDAC_TIME","",min = 0,max = 40,value = 4)
 				)	#Brackets closing "conditionalPanel"
 			),  #Brackets closing "tabItem" for "dosing"
 			tabItem(tabName = "results",
 				box(
+          fixedRow(
+            column(12,
+    					h4(strong("Individual Paracetamol Concentration-Time Profile")),
+    					plotOutput("CONCplotOutput"),
+    					br(),	#Add a space between plot and "warning text"
+              conditionalPanel(condition = "input.IND_BAY",
+    					  textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
+              )  #Brackets closing "conditionalPanel"
+            ),  #Brackets closing "column"
+  					align = "center"
+          ),  #Brackets closing "fixedRow"
 					fixedRow(
-						column(7,
-							h4(strong("Individual Acetaminophen Concentration-Time Profile")),
-							plotOutput("CONCplotOutput"),
-							br(),	#Add a space between plot and "warning text"
-							textOutput("RSEtextOutput"),	#Sentence that appears if the precision of parameter estimates is poor
-							align = "center",
-							fixedRow(
-								column(6,
-									checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
-									checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
-								),  #Brackets closing "column"
-								column(6,
-									checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
-								),	#Brackets closing "column"
-								align = "left"
-							)	#Brackets closing "fixedRow"
+						column(6,
+							checkboxInput("LOGS","Plot concentrations on log-scale",value = FALSE),  #Checkbox input for plotting y-axis on a log-scale
+							checkboxInput("RMN","Show Rumack-Matthew nomogram",value = FALSE) #Checkbox input for plotting Rumack-Matthew Nomogram
+						),  #Brackets closing "column"
+						column(6,
+              checkboxInput("IND_BAY","Show Bayesian forecast",value = FALSE),  #Checkbox input for plotting empirical Bayesian prediction for the individual
+              conditionalPanel(condition = "input.IND_BAY",
+							  checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
+              ) #Brackets closing "conditionalPanel"
 						),	#Brackets closing "column"
-						column(5,
-							fixedRow(
-								h4(strong("N-acetylcysteine Decisions")),
-								textOutput("NACtextOutput"),
-								hr(),
-								downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
-								align = "center"
-							)	#Brackets closing "fixedRow"
-						)	#Brackets closing "column"
+						align = "left"
 					),	#Brackets closing "fixedRow"
-					width = 12,
+          hr(),
+					fixedRow(
+						h4(strong("N-acetylcysteine Decisions")),
+						strong(textOutput("NACtextOutput")),
+            conditionalPanel(condition = "input.IND_BAY",
+              p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
+            ),  #Brackets closing "conditionalPanel"
+						hr(),
+						downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
+						align = "center"
+					),	#Brackets closing "fixedRow"
+					width = 8,
 					status = "primary"
 				)	#Brackets closing "box"
 			) #Brackets closing "tabItem" for "results"

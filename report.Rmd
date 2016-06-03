@@ -1,35 +1,33 @@
 ---
-title: "Acetaminophen Overdose Summary"
+title: "Paracetamol Overdose Summary"
 output:
   pdf_document:
-    fig_height: 6
-    fig_width: 8
-    reference_docx: mystyles.docx    
+    fig_height: 3
+    fig_width: 5
 ---
-  
-## `r paste(paste(input$FNAME,input$LNAME,sep=" "),paste("(MRN: ",input$MRN,")",sep = ""),sep=" ")`
-Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")` 
-  
-**************************************************
-````{r, echo=FALSE}
+
+### `r paste(paste(input$FNAME,input$LNAME,sep=" "),paste("(MRN: ",input$MRN,")",sep = ""),sep=" ")`
+Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")`
+
+```{r, echo=FALSE}
 #Custom ggplot2 theme for the document
-  theme_bw2 <- theme_set(theme_bw(base_size = 12))
-````
-  
-### Patient and acetaminophen information
-  
-``` {r Patient and Acetaminophen Information, echo=FALSE, warning=FALSE}
+  theme_bw2 <- theme_set(theme_bw(base_size = 10))
+```
+
+### Patient and paracetamol information
+
+``` {r Patient and Paracetamol Information, echo=FALSE, warning=FALSE}
 #Calculate AGE
   AGE <- round(as.double(difftime(input$DDATE,input$BDATE))/365, digits = 1)
 #Assign labels to "SEX"
   if (input$SEX == 1) SEX <- "Male"
   if (input$SEX == 2) SEX <- "Female"
 #Assign label to product category ingested
-  if (input$PROD == 1) PROD <- "Acetaminophen alone"
-  if (input$PROD == 2) PROD <- "Acetaminophen and antihistamine"
-  if (input$PROD == 3) PROD <- "Acetaminophen and opioid"
-  if (input$PROD == 4) PROD <- "Acetaminophen and other"
-  if (input$PROD == 5) PROD <- "Extended-release acetaminophen"
+  if (input$PROD == 1) PROD <- "Paracetamol alone"
+  if (input$PROD == 2) PROD <- "Paracetamol and antihistamine"
+  if (input$PROD == 3) PROD <- "Paracetamol and opioid"
+  if (input$PROD == 4) PROD <- "Paracetamol and other"
+  if (input$PROD == 5) PROD <- "Extended-release Paracetamol"
 #Assign labels to SDAC information
 	if (input$SDAC == TRUE) {
 	  SDAC <- "Administered"	#If the patient received single-dose activated charcoal then SDAC = 1
@@ -40,39 +38,39 @@ Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")`
 	  SDAC_TIME <- NA
 	}
 #Assign labels to PAC and TIME
-	PAC1 <- input$PAC1  #First plasma acetaminophen concentration (mg/L)
-	TIME1 <- input$TIME1  #TIme for first plasma acetaminophen concentration (hours)
+	PAC1 <- input$PAC1  #First plasma paracetamol concentration (mg/L)
+	TIME1 <- input$TIME1  #TIme for first plasma paracetamol concentration (hours)
 	PAC2 <- NA  #Make NA unless the appropriate "selectInput" option has been chosen
 	TIME2 <- NA  #When PAC2 is NA, just make it correspond to TIME = 0
 	if (input$NPAC > 1) {
-		PAC2 <- input$PAC2  #Second plasma acetaminophen concentration (mg/L)
-		TIME2 <- input$TIME2  #Time for second plasma acetaminophen concentration (hours)
+		PAC2 <- input$PAC2  #Second plasma paracetamol concentration (mg/L)
+		TIME2 <- input$TIME2  #Time for second plasma paracetamol concentration (hours)
 	}
 ```
-  
-**Characteristic**                                  | **Value**   
---------------------------------------------------- | --------------  
-Age (years)                                         | `r AGE`   
-Weight (kg)                                         | `r input$WT`    
-Gender                                              | `r SEX` 
-Estimated amount ingested (g)                       | `r input$AMT` 
-Product category ingested                           | `r PROD`  
-Single-dose activated charcoal (SDAC)               | `r SDAC`  
-Time of SDAC administration (hours since ingestion) | `r SDAC_TIME` 
 
-  
-### Sampled plasma acetaminophen concentrations (PAC)
-  
-  
-**Time Since Acute Ingestion (hours)**              | **Concentration (mg/L)** 
---------------------------------------------------- | --------------------------  
-1: `r TIME1`                                        | `r PAC1`    
-2: `r TIME2`                                        | `r PAC2`    
+**Characteristic**                                  | **Value**
+--------------------------------------------------- | --------------
+Age (years)                                         | `r AGE`
+Weight (kg)                                         | `r input$WT`
+Gender                                              | `r SEX`
+Estimated amount ingested (g)                       | `r input$AMT`
+Product category ingested                           | `r PROD`
+Single-dose activated charcoal (SDAC)               | `r SDAC`
+Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
-  
-### Individual acetaminophen concentration-time profile
-  
-``` {r Individual acetaminophen concentration-time profile, echo=FALSE, warning=FALSE}
+
+### Sampled plasma paracetamol concentrations
+
+
+**Time Since Acute Ingestion (hours)**              | **Concentration (mg/L)**
+--------------------------------------------------- | --------------------------
+1: `r TIME1`                                        | `r PAC1`
+2: `r TIME2`                                        | `r PAC2`
+
+
+### Individual paracetamol concentration-time profile
+
+``` {r Individual paracetamol concentration-time profile, echo=FALSE, warning=FALSE}
 	#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
 	max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4]))+20
 	#Calculate the maximum plottable value for y-axis
@@ -95,47 +93,68 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 	  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
 	}
 
-	#95% prediction intervals
-	if (input$CI95 == TRUE) {
-		plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
-	}
+  #95% prediction intervals
+  if (input$CI95 == TRUE) {
+    plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+  }
 
   #Individual patient data
-	plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+  if (input$IND_BAY == TRUE) {
+  	plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+  }
 	plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
   #Axes
 	plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
 	if (input$LOGS == FALSE & input$RMN == FALSE) {
-		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 	}
 	if (input$LOGS == FALSE & input$RMN == TRUE) {
-		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 	}
 	if (input$LOGS == TRUE & input$RMN == FALSE) {
-		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 	}
 	if (input$LOGS == TRUE & input$RMN == TRUE) {
-		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 	}
 	print(plotobj1)
-	
+
 	#Display warning text if precision of at least one parameter is poor
 	warning.text <- " "
 	if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
 ```
-  
+
 `r warning.text`
-  
-  
+
+
 ### N-acetylcysteine administration recommendations
-      
+
 ``` {r Administer N-acetylcysteine, echo=FALSE, warning=FALSE}
-	if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-	if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+  if (input$IND_BAY == FALSE) {
+    if (input$NPAC == 1) {
+      if (input$PAC1 >= rule.data$CONCrm[rule.data$TIME == input$TIME1]) {
+        recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+      } else if (input$TIME1 < 4) {
+        recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+      } else {
+        recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+      }
+    }
+    if (input$NPAC == 2) {
+      if (input$PAC2 >= rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+        recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+      } else if (input$TIME2 < 4) {
+        recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+      } else if (input$PAC1 < rule.data$CONCrm[rule.data$TIME == input$TIME1] & input$PAC2 < rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+        recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+      }
+    }
+  }
+  if (input$IND_BAY == TRUE) {
+    if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+    if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+  }
 ```
-  
+
 `r recommendation.text`
-  
-**************************************************
-Date of report: `r format(Sys.Date(), "%d-%m-%Y")`

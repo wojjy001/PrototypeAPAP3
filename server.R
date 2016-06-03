@@ -1,4 +1,4 @@
-#server.R script for PrototypeAPAP2
+#server.R script for PrototypeAPAP3
 #Reactive objects (i.e., those dependent on widget input) are written here
 #------------------------------------------------------------------------------------------
 #Define the "server" part of the Shiny application
@@ -50,6 +50,7 @@ shinyServer(function(input,output,session) {
 			value = 0,
 			{
 			input.data <- Rinput.data()  #Read in the reactive "input.data"
+			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
 			bayes.data <- bayesian.function(input.data)
 			}  #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
@@ -65,47 +66,43 @@ shinyServer(function(input,output,session) {
 
 	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
 	Rci.data <- reactive({
-		if (input$CI95 == TRUE) { #Checkbox input that controls when to calculating empirical 95% confidence intervals
-			isolate({
-				withProgress(
-					message = "Simulating 95% confidence intervals...",
-					value = 0,
-					{
-					  input.data <- Rinput.data() #Read in reactive "input.data"
-						bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
-						hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
-				  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
-						se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
-						#Simulate an error distribution for each parameter
-						ETA.list <- lapply(1:n, function(x) {
-						  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
-						  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
-						  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
-						  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
-						  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
-						})
-						#Calculate concentrations at each time-point for each individual
-						ci.data <- lapply(1:n, function(x) {
-						  pop.data <- data_frame(TIME = TIME.base,
-						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.base)-1)),
-						                        SDAC = input.data$SDAC[1],
-						                        WT = input$WT,
-						                        ETA1 = ETA.list[[x]][[1]],
-						                        ETA2 = ETA.list[[x]][[2]],
-						                        ETA3 = ETA.list[[x]][[3]],
-						                        ETA4 = ETA.list[[x]][[4]],
-						                        PROD = input.data$PROD[1],
-						                        CLi = POPCL,
-						                        Vi = POPV,
-						                        KAi = POPKA,
-						                        Fi = POPF)
-              conc.function(pop.data)
-						}) %>% bind_rows
-						ci.data <- as.data.frame(ci.data)
-					} #Brackets closing expression for "withProgress"
-				)  #Brackets closing "withProgress"
-			})	#Brackets closing "isolate"
-		}	#Brackets closing "if" expression
+		withProgress(
+			message = "Simulating 95% prediction intervals...",
+			value = 0,
+			{
+			  input.data <- Rinput.data() #Read in reactive "input.data"
+				bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
+				hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
+		  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
+				se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+				#Simulate an error distribution for each parameter
+				ETA.list <- lapply(1:n, function(x) {
+				  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
+				  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
+				  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
+				  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
+				  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
+				})
+				#Calculate concentrations at each time-point for each individual
+				ci.data <- lapply(1:n, function(x) {
+				  pop.data <- data_frame(TIME = TIME.ci,
+				                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
+				                        SDAC = input.data$SDAC[1],
+				                        WT = input$WT,
+				                        ETA1 = ETA.list[[x]][[1]],
+				                        ETA2 = ETA.list[[x]][[2]],
+				                        ETA3 = ETA.list[[x]][[3]],
+				                        ETA4 = ETA.list[[x]][[4]],
+				                        PROD = input.data$PROD[1],
+				                        CLi = POPCL,
+				                        Vi = POPV,
+				                        KAi = POPKA,
+				                        Fi = POPF)
+          conc.function(pop.data)
+				}) %>% bind_rows
+				ci.data <- as.data.frame(ci.data)
+			} #Brackets closing expression for "withProgress"
+		)  #Brackets closing "withProgress"
 	})
 
 	#Use the hessian matrix from Rbayes.data to calculate relative standard errors for each parameter
@@ -156,53 +153,77 @@ shinyServer(function(input,output,session) {
 		}
 
 		#Start plotting
-		plotobj1 <- NULL
-		plotobj1 <- ggplot()
+		plotobj2 <- NULL
+		plotobj2 <- ggplot()
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-		  plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed")  #Rumack-Matthew Nomogram
+			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
 		if (input$CI95 == TRUE) {
-			plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc")
+			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
-		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
-		plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+		if (input$IND_BAY == TRUE) {
+			plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+		}
+		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
-		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
-		print(plotobj1)
+		print(plotobj2)
 	})	#Brackets closing "renderPlot"
 
 	output$RSEtextOutput <- renderText({
 		rse.par <- Rrse.par()	#Read in reactive "rse.par"
 		warning.text <- " "
-		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
+		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend examining 95% prediction intervals before making a decision."
 		warning.text
 	})	#Brackets closing "renderText"
 
 	output$NACtextOutput <- renderText({
 		decision.data <- Rdecision.data()	#Read in reactive "decision.data"
-		if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-		if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		if (input$IND_BAY == FALSE) {
+			if (input$NPAC == 1) {
+				if (input$PAC1 >= rule.data$CONCrm[rule.data$TIME == input$TIME1]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME1 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+			if (input$NPAC == 2) {
+				if (input$PAC2 >= rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				} else if (input$TIME2 < 4) {
+					recommendation.text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+				} else if (input$PAC1 < rule.data$CONCrm[rule.data$TIME == input$TIME1] & input$PAC2 < rule.data$CONCrm[rule.data$TIME == input$TIME2]) {
+					recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+				}
+			}
+		}
+		if (input$IND_BAY == TRUE) {
+			if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
 		recommendation.text
 	})	#Brackets closing "renderText"
 
@@ -212,7 +233,7 @@ shinyServer(function(input,output,session) {
 	#Generate a document of patient summary results
 	output$downloadReport <- downloadHandler(
 		filename = function() {
-			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"Acetaminophen_Report.docx",sep = "_")
+			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"Paracetamol_Report.pdf",sep = "_")
 		},
 		content = function(file) {
 			src <- normalizePath("report.Rmd")
@@ -227,9 +248,9 @@ shinyServer(function(input,output,session) {
 			owd <- setwd(tempdir())
 			on.exit(setwd(owd))
 			file.copy(src,"report.Rmd")
-			Sys.setenv(RSTUDIO_PANDOC = pandocdir)
-			#out <- render("report.Rmd",pdf_document(fig_width = 8,fig_height = 6),envir = inputEnv)
-			out <- render("report.Rmd",word_document(fig_width = 8,fig_height = 6,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
+			#Sys.setenv(RSTUDIO_PANDOC = pandocdir)	#Required if running the application locally
+			out <- render("report.Rmd",pdf_document(fig_width = 5,fig_height = 3),envir = inputEnv)
+			#out <- render("report.Rmd",word_document(fig_width = 4,fig_height = 2,reference_docx = paste0(dir,"mystyles.docx")),envir = inputEnv)
 			file.rename(out,file)
 		}
 	)	#Brackets closing "downloadHandler"
