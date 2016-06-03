@@ -164,7 +164,7 @@ shinyServer(function(input,output,session) {
 		}
 
 		#95% prediction intervals
-		if (input$CI95 == TRUE) {
+		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
 			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
