@@ -5,6 +5,7 @@
 #Load package libraries
   library(shiny)
   library(shinydashboard)  #Package for making cooler user-interface for Shiny applications
+  library(shinyjs)  #Package for perform common JavaScript operations
   library(ggplot2)  #Plotting
   library(grid)  #Plotting
   library(plyr)  #Split and rearrange data, ddply function

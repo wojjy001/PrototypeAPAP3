@@ -66,7 +66,11 @@ shinyServer(function(input,output,session) {
 
 	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
 	Rci.data <- reactive({
-		if (input$CI95 == TRUE) {
+		observeEvent(input$IND_BAY, {
+			if (input$IND_BAY == FALSE) reset("CI95")	#Observe the IND_BAY widget, if it is "false", i.e., unticked, then reset the CI95 widget value to its original state, which is also unticked
+		})
+		#If IND_BAY is ticked and CI95 is ticked, the simulate the 95% prediction intervals
+		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
 			isolate({
 				withProgress(
 					message = "Simulating 95% prediction intervals...",
