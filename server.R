@@ -30,15 +30,15 @@ shinyServer(function(input,output,session) {
 		PAC[TIME == TIME2] <- PAC2  #Input with PAC2 when TIME = TIME2
 		#Collate into a data frame
 		input.data <- data.frame(TIME,  #Time sequence
-														AMT = c(AMT,rep(0,times = length(TIME)-1)),  #AMT input at time = 0, then no further doses at subsequent times
-														PAC,  #Patient's plasma acetaminophen concentrations (mg/L)
-														WT,  #Patient's weight (kg)
-														SDAC,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
-														PROD,  #Product category ingested
-														CLi = POPCL,  #Initial CL column
-														Vi = POPV,  #Initial V column
-														KAi = POPKA,  #Initial KA column
-														Fi = POPF  #Initial F column
+			AMT = c(AMT,rep(0,times = length(TIME)-1)),  #AMT input at time = 0, then no further doses at subsequent times
+			PAC,  #Patient's plasma acetaminophen concentrations (mg/L)
+			WT,  #Patient's weight (kg)
+			SDAC,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+			PROD,  #Product category ingested
+			CLi = POPCL,  #Initial CL column
+			Vi = POPV,  #Initial V column
+			KAi = POPKA,  #Initial KA column
+			Fi = POPF  #Initial F column
 		)
 		input.data
 	})  #Brackets closing "Rinput.data"

@@ -23,7 +23,11 @@ sidebar <-
         menuSubItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
 			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
       ), #Brackets closing "menuItem"
-      menuItem("Code",tabName = "code",icon = icon("github"))
+      menuItem("Code",tabName = "code",icon = icon("github"),
+        menuSubItem("ui.R",tabName = "ui"),
+        menuSubItem("server.R",tabName = "server"),
+        menuSubItem("global.R",tabName = "global")
+      ) #Brackets closing "menuItem"
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -269,7 +273,16 @@ body <-
 					width = 10,
 					status = "primary"
 				)	#Brackets closing "box"
-			) #Brackets closing "tabItem" for "results"
+			), #Brackets closing "tabItem" for "results"
+      tabItem(tabName = "ui",
+        pre(includeText("ui.R"))
+      ), #Brackets closing "tabItem" for "ui"
+      tabItem(tabName = "server",
+        pre(includeText("server.R"))
+      ),  #Brackets closing "tabItem" for "server"
+      tabItem(tabName = "global",
+        pre(includeText("global.R"))
+      )  #Brackets closing "tabItem" for "global"
 		)  #Brackets closing "tabItems"
 	) #Brackets closing "dashboardBody"
 #------------------------------------------------------------------------------------------
