@@ -162,42 +162,42 @@ shinyServer(function(input,output,session) {
 		}
 
 		#Start plotting
-		plotobj2 <- NULL
-		plotobj2 <- ggplot()
+		plotobj3 <- NULL
+		plotobj3 <- ggplot()
 
 		#Shaded regions representing the Rumack-Matthew Nomogram and when to treat with NAC
 		if (input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
-		  plotobj2 <- plotobj2 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
-		  plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
+			plotobj3 <- plotobj3 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		  plotobj3 <- plotobj3 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		  plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
 		}
 
 		#95% prediction intervals
 		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-			plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
 		if (input$IND_BAY == TRUE) {
-			plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+			plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
 		}
-		plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
 	  #Axes
-		plotobj2 <- plotobj2 + scale_x_continuous("\nTime since ingestion (hours)")
+		plotobj3 <- plotobj3 + scale_x_continuous("\nTime since ingestion (hours)")
 		if (input$LOGS == FALSE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
 		}
 		if (input$LOGS == FALSE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+			plotobj3 <- plotobj3 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
 		}
 		if (input$LOGS == TRUE & input$RMN == FALSE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
 		}
 		if (input$LOGS == TRUE & input$RMN == TRUE) {
-			plotobj2 <- plotobj2 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+			plotobj3 <- plotobj3 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 		}
-		print(plotobj2)
+		print(plotobj3)
 	})	#Brackets closing "renderPlot"
 
 	output$RSEtextOutput <- renderText({
