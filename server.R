@@ -64,54 +64,45 @@ shinyServer(function(input,output,session) {
 		conc.data <- conc.function(input.conc.data)  #Simulate concentrations
 	})  #Brackets closing "Rconc.data"
 
-	observeEvent(input$IND_BAY, {
-		if (input$IND_BAY == FALSE) reset("CI95")	#Observe the IND_BAY widget, if it is "false", i.e., unticked, then reset the CI95 widget value to its original state, which is also unticked
-	})
-
 	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
 	Rci.data <- reactive({
-		#If IND_BAY is ticked and CI95 is ticked, the simulate the 95% prediction intervals
-		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-			isolate({
-				withProgress(
-					message = "Simulating 95% prediction intervals...",
-					value = 0,
-					{
-					  input.data <- Rinput.data() #Read in reactive "input.data"
-						bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
-						hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
-				  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
-						se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
-						#Simulate an error distribution for each parameter
-						ETA.list <- lapply(1:n, function(x) {
-						  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
-						  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
-						  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
-						  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
-						  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
-						})
-						#Calculate concentrations at each time-point for each individual
-						ci.data <- lapply(1:n, function(x) {
-						  pop.data <- data_frame(TIME = TIME.ci,
-						                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
-						                        SDAC = input.data$SDAC[1],
-						                        WT = input$WT,
-						                        ETA1 = ETA.list[[x]][[1]],
-						                        ETA2 = ETA.list[[x]][[2]],
-						                        ETA3 = ETA.list[[x]][[3]],
-						                        ETA4 = ETA.list[[x]][[4]],
-						                        PROD = input.data$PROD[1],
-						                        CLi = POPCL,
-						                        Vi = POPV,
-						                        KAi = POPKA,
-						                        Fi = POPF)
-		          conc.function(pop.data)
-						}) %>% bind_rows
-						ci.data <- as.data.frame(ci.data)
-					} #Brackets closing expression for "withProgress"
-				)  #Brackets closing "withProgress"
-			})	#Brackets closing "isolate" expression
-		}	#Brackets closing "if" statement
+		withProgress(
+			message = "Simulating 95% prediction intervals...",
+			value = 0,
+			{
+			  input.data <- Rinput.data() #Read in reactive "input.data"
+				bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
+				hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
+		  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
+				se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+				#Simulate an error distribution for each parameter
+				ETA.list <- lapply(1:n, function(x) {
+				  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
+				  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
+				  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
+				  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
+				  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
+				})
+				#Calculate concentrations at each time-point for each individual
+				ci.data <- lapply(1:n, function(x) {
+				  pop.data <- data_frame(TIME = TIME.ci,
+				                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
+				                        SDAC = input.data$SDAC[1],
+				                        WT = input$WT,
+				                        ETA1 = ETA.list[[x]][[1]],
+				                        ETA2 = ETA.list[[x]][[2]],
+				                        ETA3 = ETA.list[[x]][[3]],
+				                        ETA4 = ETA.list[[x]][[4]],
+				                        PROD = input.data$PROD[1],
+				                        CLi = POPCL,
+				                        Vi = POPV,
+				                        KAi = POPKA,
+				                        Fi = POPF)
+          conc.function(pop.data)
+				}) %>% bind_rows
+				ci.data <- as.data.frame(ci.data)
+			} #Brackets closing expression for "withProgress"
+		)  #Brackets closing "withProgress"
 	})
 
 	#Use the hessian matrix from Rbayes.data to calculate relative standard errors for each parameter
@@ -144,6 +135,10 @@ shinyServer(function(input,output,session) {
 	############
 	##_OUTPUT_##
 	############
+	observeEvent(input$IND_BAY, {
+		if (input$IND_BAY == FALSE) reset("CI95")	#Observe the IND_BAY widget, if it is "false", i.e., unticked, then reset the CI95 widget value to its original state, which is also unticked
+	})
+
 	output$CONCplotOutput <- renderPlot({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		conc.data <- Rconc.data()  #Read in reactive "conc.data"
