@@ -14,11 +14,9 @@ sidebar <-
 	dashboardSidebar(
 		width = 250,	#Width of sidebar the same as width of header
 		sidebarMenu(
-      menuItem("Application",tabName = "app",icon = icon("chrome"),
-        menuSubItem("Patient Information",tabName = "patient",icon = icon("child")),
-        menuSubItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
-			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
-      ) #Brackets closing "menuItem"
+      menuItem("Patient Information",tabName = "patient",icon = icon("child")),
+      menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
+		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -28,9 +26,6 @@ body <-
 			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
 		),
 		tabItems(
-      tabItem(tabName = "app"
-        #Leave this blank so nothing happens when this tab is clicked
-      ),  #Brackets closing "tabItem" for "app"
 			tabItem(tabName = "patient",
 				h4("Patient Information:"),	#Heading for Patient Information section
 				numericInput("MRN","Medical Record Number (MRN):",value = 000000,step = 1),  #Numeric input for patient's medical record number (or unit record number)
