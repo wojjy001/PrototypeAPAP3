@@ -36,7 +36,7 @@ body <-
         h1(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
         h2("Jessica Wojciechowski"),
         h3("University of South Australia supervisors: Richard Upton, David Foster, Michael Wiese"),
-        h3("University of Maryland, Baltimore co-authors:")
+        h3("University of Maryland, Baltimore co-authors: Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "para-overdose",
         h2(strong("Paracetamol Overdose")),
