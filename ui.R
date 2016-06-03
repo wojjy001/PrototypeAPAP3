@@ -208,7 +208,7 @@ body <-
     					plotOutput("CONCplotOutput"),
     					br(),	#Add a space between plot and "warning text"
               conditionalPanel(condition = "input.IND_BAY",
-    					     textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
+    					  textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
               )  #Brackets closing "conditionalPanel"
             ),  #Brackets closing "column"
   					align = "center"
@@ -229,7 +229,10 @@ body <-
           hr(),
 					fixedRow(
 						h4(strong("N-acetylcysteine Decisions")),
-						textOutput("NACtextOutput"),
+						strong(textOutput("NACtextOutput")),
+            conditionalPanel(condition = "input.IND_BAY",
+              p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
+            ),  #Brackets closing "conditionalPanel"
 						hr(),
 						downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
 						align = "center"
