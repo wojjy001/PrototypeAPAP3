@@ -90,29 +90,57 @@ body <-
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
         h2(strong("Role of Population Pharmacokinetic Modelling")),
+        hr(),
         fixedRow(
           column(4,
-            checkboxInput("NLME",h3("Non-linear mixed-effect modelling"),value = FALSE,width = 500),
-            conditionalPanel(condition = "input.NLME",
-              h4("- Fixed effects parameters describe the population average and covariate influences"),
-              h4("- Random effect parameters describe how and how much individuals vary from the population average"),
-              h4("- Parameters estimated using maximum likelihood estimation")
-            ), #Brackets closing "conditionalPanel"
-            checkboxInput("PRIOR",h3("Previous model provides useful information regarding the pharmacokinetics of paracetamol following an acute overdose in a population, i.e., the quantitative effect of:"),value = FALSE,width = 500),
-            conditionalPanel(condition = "input.PRIOR",
-              h4("- Differences in amounts ingested"),
-              h4("- Differences in products ingested"),
-              h4("- Differences in body weights"),
-              h4("- Administration of single-dose activated charcoal"),
-              h4("- Unexplained differences between individuals"),
-              h4("- Unexplained differences within an individual")
-            ),  #Brackets closing "conditionalPanel"
-            checkboxInput("BAY_FOR",h3("Bayesian forecasting"),value = FALSE,width = 500),
-            conditionalPanel(condition = "input.BAY_FOR",
-              h4("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
-              h4("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
-              h4(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
-            ) #Brackets closing "conditionalPanel"
+            box(
+              fixedRow(
+                column(12,
+                  p("- Fixed effects parameters describe the population average and covariate influences"),
+                  p("- Random effect parameters describe how and how much individuals vary from the population average"),
+                  p("- Parameters estimated using maximum likelihood estimation")
+                ) #Brackets closing "column"
+              ), #Brackets closing "fixedRow"
+              title = "Non-linear mixed-effect modelling",
+              width = 12,
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE
+            ),  #Brackets closing "box"
+            box(
+              fixedRow(
+                column(12,
+                  p("- Differences in amounts ingested"),
+                  p("- Differences in products ingested"),
+                  p("- Differences in body weights"),
+                  p("- Administration of single-dose activated charcoal"),
+                  p("- Unexplained differences between individuals"),
+                  p("- Unexplained differences within an individual")
+                ) #Brackets closing "column"
+              ),  #Brackets closing "fixedRow"
+              title = "Previous model provides useful (quantitative) information regarding the pharmacokinetics of paracetamol following an acute overdose in a population",
+              width = 12,
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE
+            ),  #Brackets closing "box"
+            box(
+              fixedRow(
+                column(12,
+                  p("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
+                  p("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
+                  p(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
+                ) #Brackets closing "column"
+              ), #Brackets closing "fixedRow"
+              title = "Bayesian forecasting",
+              width = 12,
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE
+            ) #Brackets closing "box"
           ),  #Brackets closing "column"
           column(8,
             box(
