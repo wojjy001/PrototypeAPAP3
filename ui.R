@@ -22,7 +22,8 @@ sidebar <-
         menuSubItem("Patient Information",tabName = "patient",icon = icon("child")),
         menuSubItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
 			  menuSubItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
-      ) #Brackets closing "menuItem"
+      ), #Brackets closing "menuItem"
+      menuItem("Code",tabName = "code",icon = icon("github"))
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -35,22 +36,24 @@ body <-
       tabItem(tabName = "intro",
         h1(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
         h2("Jessica Wojciechowski"),
-        h3("University of South Australia supervisors: Richard Upton, David Foster, Michael Wiese"),
-        h3("University of Maryland, Baltimore co-authors: Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
+        h3(strong("University of South Australia supervisors:")," Richard Upton, David Foster, Michael Wiese"),
+        h3(strong("University of Maryland, Baltimore co-authors:")," Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "para-overdose",
         h2(strong("Paracetamol Overdose")),
-        h3("How much is a paracetamol overdose?"),
-        h3("How many people overdose?"),
-        h3("What are the consequences when somebody overdoses on paracetamol?"),
-        h3("What is the antidotal treatment?")
+        hr(),
+        h4("How much is a paracetamol overdose?"),
+        h4("How many people overdose?"),
+        h4("What are the consequences when somebody overdoses on paracetamol?"),
+        h4("What is the antidotal treatment?")
       ),  #Brackets closing "tabItem" for "para-overdose"
       tabItem(tabName = "rm-nomo",
-        h2(strong("Rumack-Matthew Nomogram")),
         fixedRow(
           column(4,
-            h3("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
-            h3("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
+            h2(strong("Rumack-Matthew Nomogram")),
+            hr(),
+            h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
+            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
           ),  #Brackets closing column
           column(8,
             box(
@@ -78,30 +81,27 @@ body <-
                 align = "center"
               ),  #Brackets closing "fixedRow"
               checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
+              h4(strong(textOutput("DEMOtextOutput1"))),
               width = 12,
-              status = "primary",
-              title = "Rumack-Matthew Nomogram",
-              footer = h4(strong(textOutput("DEMOtextOutput1"))),
-              solidHeader = TRUE,
-              collapsible = TRUE
+              status = "primary"
             ) #Brackets closing "box"
           ) #Brackets closing "column"
         ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "rm-nomo"
       tabItem(tabName = "pop-pk",
-        h2(strong("Role of Population Pharmacokinetic Modelling")),
-        hr(),
         fixedRow(
           column(4,
+            h2(strong("Role of Population Pharmacokinetic Modelling")),
+            hr(),
             box(
               fixedRow(
                 column(12,
-                  p("- Fixed effects parameters describe the population average and covariate influences"),
-                  p("- Random effect parameters describe how and how much individuals vary from the population average"),
-                  p("- Parameters estimated using maximum likelihood estimation")
+                  h4("- Fixed effects parameters describe the population average and covariate influences"),
+                  h4("- Random effect parameters describe how and how much individuals vary from the population average"),
+                  h4("- Parameters estimated using maximum likelihood estimation")
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
-              title = "Non-linear mixed-effect modelling",
+              title = strong("Non-linear mixed-effect modelling"),
               width = 12,
               status = "primary",
               solidHeader = TRUE,
@@ -111,15 +111,15 @@ body <-
             box(
               fixedRow(
                 column(12,
-                  p("- Differences in amounts ingested"),
-                  p("- Differences in products ingested"),
-                  p("- Differences in body weights"),
-                  p("- Administration of single-dose activated charcoal"),
-                  p("- Unexplained differences between individuals"),
-                  p("- Unexplained differences within an individual")
+                  h4("- Differences in amounts ingested"),
+                  h4("- Differences in products ingested"),
+                  h4("- Differences in body weights"),
+                  h4("- Administration of single-dose activated charcoal"),
+                  h4("- Unexplained differences between individuals"),
+                  h4("- Unexplained differences within an individual")
                 ) #Brackets closing "column"
               ),  #Brackets closing "fixedRow"
-              title = "Previous model provides useful (quantitative) information regarding the pharmacokinetics of paracetamol following an acute overdose in a population",
+              title = strong("Previous model provides useful (quantitative) information regarding the pharmacokinetics of paracetamol following an acute overdose in a population"),
               width = 12,
               status = "primary",
               solidHeader = TRUE,
@@ -129,12 +129,12 @@ body <-
             box(
               fixedRow(
                 column(12,
-                  p("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
-                  p("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
-                  p(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
+                  h4("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
+                  h4("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
+                  h4(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
-              title = "Bayesian forecasting",
+              title = strong("Bayesian forecasting"),
               width = 12,
               status = "primary",
               solidHeader = TRUE,
@@ -169,11 +169,9 @@ body <-
                 ) #Brackets closing "fixedRow"
               ),  #Brackets closing "conditionalPanel"
               plotOutput("DEMOplotOutput2"),
+              checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale",value = FALSE),
               width = 12,
-              status = "primary",
-              title = "Paracetamol Pharmacokinetics",
-              footer = checkboxInput("DEMO_LOGS","Plot concentrations on a log-scale",value = FALSE),
-              solidHeader = TRUE
+              status = "primary"
             ) #Brackets closing "box"
           ) #Brackets closing "column"
         ) #Brackets closing "fixedRow"
