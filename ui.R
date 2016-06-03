@@ -35,14 +35,24 @@ sidebar <-
 body <-
 	dashboardBody(
 		tags$head(
-			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+			tags$link(rel = "stylesheet",type = "text/css",href = "custom.css")
 		),
 		tabItems(
       tabItem(tabName = "intro",
         h1(strong("Web-Based Antidote Recommendation Tool for Acute Paracetamol Overdose")),
         h2("Jessica Wojciechowski"),
-        h3(strong("University of South Australia supervisors:")," Richard Upton, David Foster, Michael Wiese"),
-        h3(strong("University of Maryland, Baltimore co-authors:")," Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
+        fixedRow(
+          column(6,
+            h3(strong("University of South Australia supervisors:")," Richard Upton, David Foster, Michael Wiese"),
+            h3(strong("University of Maryland, Baltimore co-authors:")," Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
+          ),  #Brackets closing "column"
+          column(6,
+            img(src = "unisa_logo.png",width = 200,height = 75),  #University of South Australia logo
+            br(),
+            br(),
+            img(src = "umb_ctm_logo.png",width = 300,height = 100) #University of Maryland, Baltimore logo
+          ) #Brackets closing "column"
+        )  #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "intro"
       tabItem(tabName = "para-overdose",
         h2(strong("Paracetamol Overdose")),
