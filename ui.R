@@ -34,6 +34,7 @@ sidebar <-
 #Application's body
 body <-
 	dashboardBody(
+    useShinyjs(),
 		tags$head(
 			tags$link(rel = "stylesheet",type = "text/css",href = "custom.css")
 		),
@@ -262,7 +263,9 @@ body <-
 						column(6,
               checkboxInput("IND_BAY","Show Bayesian forecast",value = FALSE),  #Checkbox input for plotting empirical Bayesian prediction for the individual
               conditionalPanel(condition = "input.IND_BAY",
-							  checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
+							  div(
+                  checkboxInput("CI95","Show 95% prediction intervals",value = FALSE)	#Checkbox input for plotting empirical 95% confidence intervals
+                ) #Brackets closing "div"
               ) #Brackets closing "conditionalPanel"
 						),	#Brackets closing "column"
 						align = "left"
