@@ -26,7 +26,8 @@ sidebar <-
       menuItem("Code",tabName = "code",icon = icon("github"),
         menuSubItem("ui.R",tabName = "ui"),
         menuSubItem("server.R",tabName = "server"),
-        menuSubItem("global.R",tabName = "global")
+        menuSubItem("global.R",tabName = "global"),
+        menuSubItem("report.Rmd",tabName = "report")
       ) #Brackets closing "menuItem"
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
@@ -282,7 +283,10 @@ body <-
       ),  #Brackets closing "tabItem" for "server"
       tabItem(tabName = "global",
         pre(includeText("global.R"))
-      )  #Brackets closing "tabItem" for "global"
+      ),  #Brackets closing "tabItem" for "global"
+      tabItem(tabName = "report",
+        pre(includeText("report.Rmd"))
+      )  #Brackets closing "tabItem" for "report"
 		)  #Brackets closing "tabItems"
 	) #Brackets closing "dashboardBody"
 #------------------------------------------------------------------------------------------
