@@ -207,7 +207,9 @@ body <-
     					h4(strong("Individual Paracetamol Concentration-Time Profile")),
     					plotOutput("CONCplotOutput"),
     					br(),	#Add a space between plot and "warning text"
-    					textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
+              conditionalPanel(condition = "input.IND_BAY",
+    					     textOutput("RSEtextOutput")	#Sentence that appears if the precision of parameter estimates is poor
+              )  #Brackets closing "conditionalPanel"
             ),  #Brackets closing "column"
   					align = "center"
           ),  #Brackets closing "fixedRow"
