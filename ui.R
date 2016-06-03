@@ -259,16 +259,19 @@ body <-
 					),	#Brackets closing "fixedRow"
           hr(),
 					fixedRow(
-						h4(strong("N-acetylcysteine Decisions")),
-						strong(textOutput("NACtextOutput")),
-            conditionalPanel(condition = "input.IND_BAY",
-              p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
-            ),  #Brackets closing "conditionalPanel"
-						hr(),
-						downloadLink("downloadReport", label = h4(strong("Click here to download patient summary report"))),
+            column(9,
+              # h4(strong("N-acetylcysteine Decisions")),
+  						strong(textOutput("NACtextOutput")),
+              conditionalPanel(condition = "input.IND_BAY",
+                p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
+              )  #Brackets closing "conditionalPanel"
+            ),  #Brackets closing "column"
+            column(3,
+						  downloadButton("downloadReport", label = strong("Download Summary Report"))
+            ),  #Brackets closing "column"
 						align = "center"
 					),	#Brackets closing "fixedRow"
-					width = 8,
+					width = 10,
 					status = "primary"
 				)	#Brackets closing "box"
 			), #Brackets closing "tabItem" for "results"
