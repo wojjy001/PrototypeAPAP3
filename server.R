@@ -334,7 +334,7 @@ shinyServer(function(input,output,session) {
 	output$RSEtextOutput <- renderText({
 		rse.par <- Rrse.par()	#Read in reactive "rse.par"
 		warning.text <- " "
-		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend sampling another plasma concentration"
+		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend examining 95% prediction intervals before making a decision."
 		warning.text
 	})	#Brackets closing "renderText"
 
