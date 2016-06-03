@@ -7,7 +7,6 @@ output:
 ---
 
 ### `r paste(paste(input$FNAME,input$LNAME,sep=" "),paste("(MRN: ",input$MRN,")",sep = ""),sep=" ")`
-Date of ingestion: `r format(input$DDATE, "%d-%m-%Y")`
 
 ```{r, echo=FALSE}
 #Custom ggplot2 theme for the document
@@ -62,10 +61,10 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 ### Sampled plasma paracetamol concentrations
 
 
-**Time Since Acute Ingestion (hours)**              | **Concentration (mg/L)**
---------------------------------------------------- | --------------------------
-1: `r TIME1`                                        | `r PAC1`
-2: `r TIME2`                                        | `r PAC2`
+**Date of Ingestion** | **Time Since Acute Ingestion (hours)** | **Concentration (mg/L)**
+--------------------- | -------------------------------------- | --------------------------
+`r format(input$DDATE, "%d-%m-%Y")` | 1: `r TIME1`  | `r PAC1`
+`r format(input$DDATE, "%d-%m-%Y")` | 2: `r TIME2`  | `r PAC2`
 
 
 ### Individual paracetamol concentration-time profile
@@ -129,7 +128,6 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 `r warning.text`
 
-
 ### N-acetylcysteine administration recommendations
 
 ``` {r Administer N-acetylcysteine, echo=FALSE, warning=FALSE}
@@ -158,5 +156,4 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
     if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
   }
 ```
-
 `r recommendation.text`
