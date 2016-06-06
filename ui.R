@@ -58,10 +58,46 @@ body <-
       tabItem(tabName = "para-overdose",
         h2(strong("Paracetamol Overdose")),
         hr(),
-        h4("How much is a paracetamol overdose?"),
-        h4("How many people overdose?"),
-        h4("What are the consequences when somebody overdoses on paracetamol?"),
-        h4("What is the antidotal treatment?")
+        fixedRow(
+          column(6,
+            box(
+              h4("- Greater than 10 g or 200 mg/kg"),
+              title = strong("How much is a paracetamol overdose?"),
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = FALSE,
+              width = 12
+            ),  #Brackets closing "box"
+            box(
+              h4("- Accounts for approximately 80,000 emergency department visits annually in the United States"),
+              title = strong("How many people overdose?"),
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE,
+              width = 12
+            ), #Brackets closing "box"
+            box(
+              h4("- Primary concern is hepatotoxicity"),
+              title = strong("What are the consequences of paracetamol overdose?"),
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE,
+              width = 12
+            ),  #Brackets closing "box"
+            box(
+              h4("- Single-dose activated charcoal (SDAC)"),
+              h4("- N-acetylcysteine (NAC)"),
+              title = strong("What is the antidotal treatment?"),
+              status = "primary",
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              collapsed = TRUE,
+              width = 12
+            ) #Brackets closing "box"
+          ) #Brackets closing "column"
+        ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "para-overdose"
       tabItem(tabName = "rm-nomo",
         fixedRow(
