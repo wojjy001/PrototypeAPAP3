@@ -239,17 +239,17 @@ shinyServer(function(input,output,session) {
 				label.data[, c("CLi","Vi","KAi")] <- lapply(label.data[, c("CLi","Vi","KAi")],round,digits = 2)
 
 				if (input$DEMO_LOGS == FALSE) {
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
 				}
 
 				if (input$DEMO_LOGS == TRUE) {
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 22,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
 				}
 			}
 
