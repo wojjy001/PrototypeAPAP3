@@ -16,7 +16,8 @@ sidebar <-
 		sidebarMenu(
       menuItem("Patient Information",tabName = "patient",icon = icon("child")),
       menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
-		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
+		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart")),
+      menuItem("mrgsolve Test Output",tabName = "mrgsolve-test")
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -24,7 +25,7 @@ body <-
 	dashboardBody(
     useShinyjs(),
 		tags$head(
-			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+			tags$link(rel = "stylesheet",type = "text/css",href = "custom.css")
 		),
 		tabItems(
 			tabItem(tabName = "patient",
@@ -119,7 +120,10 @@ body <-
 					width = 10,
 					status = "primary"
 				)	#Brackets closing "box"
-			) #Brackets closing "tabItem" for "results"
+			), #Brackets closing "tabItem" for "results"
+      tabItem(tabName = "mrgsolve-test"
+        p("text")
+      ) #Brackets closing "tabItem" for "mrgsolve-test"
 		)  #Brackets closing "tabItems"
 	) #Brackets closing "dashboardBody"
 #------------------------------------------------------------------------------------------
