@@ -104,31 +104,40 @@
             PROD4_KA = -0.348731,
             WT = 70,
             SDAC = 0,
-            PROD = 0
+            PROD = 0,
+            DOSE = 20000
 
-    $CMT    GUT CENT
+    $CMT    GUT CENT DUMP
 
     $OMEGA  labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
             0.035022858 0.0054543827 0.45608978 0.52338442
 
-    $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL) ;
-            double V = POPV*pow(WT/70,WT_V)*exp(ETA_V) ;
-            if (PROD = 0) double KA = POPKA*(1+PROD0_KA)*exp(ETA_KA) ;
-            if (PROD = 1) double KA = POPKA*(1+PROD1_KA)*exp(ETA_KA) ;
-            if (PROD = 2) double KA = POPKA*(1+PROD2_KA)*exp(ETA_KA) ;
-            if (PROD = 3) double KA = POPKA*(1+PROD3_KA)*exp(ETA_KA) ;                                              if (PROD = 4) double KA = POPKA*(1+PROD4_KA)*exp(ETA_KA) ;
+    $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL);
+            double V = POPV*pow(WT/70,WT_V)*exp(ETA_V);
+            double KA = POPKA;
+            if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA);
+            if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA);
+            if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA);
+            if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA);                                              if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA);
             double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F);
+            double AMT = 0;
+            if (time == 0) AMT = DOSE*F;
 
     $ODE    double CP = CENT/V;
 
-            dxdt_GUT = -KA*GUT;
+            dxdt_GUT = AMT -KA*GUT;
             dxdt_CENT = KA*GUT  -CL/V*CENT;
+            dxdt_DUMP = CL/V*CENT;
 
     $TABLE  table(CP) = CENT/V;
 
-    $CAPTURE  ETA_CL ETA_V ETA_KA ETA_F
+    $CAPTURE CL V KA F AMT
     '
     mod <- mcode("pop",code)
+    data <- expand.ev(ID = 1:1000,DOSE = 20000)
+    out <- mod %>% data_set(data)  %>% init(GUT = DOSE*F) %>% mrgsim(end = 24,delta = 1)
+    plot.output <- out %>% plot(CP~.)
+    plot.output
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
