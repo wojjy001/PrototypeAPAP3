@@ -11,6 +11,7 @@
   library(plyr)  #Split and rearrange data, ddply function
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
+  library(mrgsolve) #Metrum differential equation solver for pharmacometrics
   #Directories on Windows
     # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
     # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
