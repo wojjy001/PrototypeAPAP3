@@ -11,6 +11,7 @@
   library(plyr)  #Split and rearrange data, ddply function
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
+  library(mrgsolve) #Metrum differential equation solver for pharmacometrics
   #Directories on Windows
     # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
     # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
@@ -24,10 +25,9 @@
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
                 seq(from = 4,to = 12,by = 2),
                 seq(from = 16,to = 32,by = 8))
+  TIME.tgrid <- c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8))
 #Set the number of individuals that make up the 95% prediction intervals
-  n <- 1000
-#Define a time sequence for the 95% prediction intervals - shorter length than TIME.base for speed
-  TIME.ci <- c(0,1,2,3,4,8,12,16,20,24,32)
+  n <- 2000
 #Set the number of individuals for population PK modelling example (simulation)
   nsim <- 100
 #95% prediction interval functions
@@ -60,6 +60,7 @@
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
   #Function for calculating concentrations in a loop
+  #This function is used during Bayesian estimation
     conc.function <- function(df){
       for(i in 2:nrow(df)) {
         #Specify individual parameter values
@@ -87,6 +88,68 @@
       }
       df
     }
+
+#------------------------------------------------------------------------------------------
+#Calculate concentrations at each time-point for the individual
+  #Using mrgsolve - analytical solutions
+  #This compiled model is used for simulating the individual's estimated profile and 95% prediction intervals
+    code <- '
+    $PARAM    POPCL = 14.6076,
+              POPV = 76.1352,
+              POPKA = 0.66668,
+              POPF = 1,
+              ERR_CL = 0,
+              ERR_V = 0,
+              ERR_KA = 0,
+              ERR_F = 0,
+              WT_CL = 0.75,
+              WT_V = 1,
+              SDAC_F = -0.179735,
+              PROD0_KA = 0,
+              PROD1_KA = 1.41279,
+              PROD2_KA = -0.488444,
+              PROD3_KA = 0.0222383,
+              PROD4_KA = -0.348731,
+              WT = 70,
+              SDAC = 0,
+              PROD = 0
+
+    $INIT     GUT = 0, CENT = 0
+
+    $PKMODEL  ncmt = 1,
+              depot = TRUE,
+              trans = 2
+
+    $OMEGA    block = TRUE
+              labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
+              0.035022858
+              0.0044077284  0.0054543827
+              0.10313184 -0.0034085583 0.45608978
+              0.016587014 0.002349424 -0.15735995 0.52338442
+
+    $SIGMA    block = FALSE
+              labels = s(ERR_PRO)
+              0.101285
+
+    $MAIN     double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL+ERR_CL);
+              double V = POPV*pow(WT/70,WT_V)*exp(ETA_V+ERR_V);
+              double KA = POPKA;
+              if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA+ERR_KA);
+              double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F+ERR_F);
+              F_GUT = F;
+
+    $TABLE    table(IPRE) = CENT/V;
+              table(DV) = table(IPRE)*(1 + ERR_PRO);
+
+    $CAPTURE  CL V KA F
+    '
+    mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
+    #There is opportunity to simply update model parameters after the model code has been compiled
+
 #------------------------------------------------------------------------------------------
 #Simulate a population according to the PK model described
 #Randomly sample individuals at different times for various amounts
@@ -144,6 +207,7 @@
         ETA2fit <- log(par[2]) #Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
+
         input.bayes.data <- input.data
         input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
         input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
@@ -154,7 +218,8 @@
         input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
         input.bayes.data$Fi <- POPF  #Initial value for bioavailability
         conc.data <- conc.function(input.bayes.data)  #Run the concentration function
-        Yhat <- conc.data$IPRE
+
+        Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
         #If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
         Yhat[is.na(Yobs) == T] <- NA
         #Posterior component (from the data)
@@ -205,9 +270,9 @@
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC
   rm.function <- function(input.data) {
-    PAC_TIME <- input.data$TIME
+    PAC_TIME <- input.data$time[1]
     input.data$NAC_DEC <- 0
-    input.data$NAC_DEC[input.data$IPRE[input.data$TIME == PAC_TIME] > rule.data$CONCrm[rule.data$TIME == PAC_TIME]] <- 1
+    input.data$NAC_DEC[input.data$IPRE[input.data$time == PAC_TIME] > rule.data$CONCrm[rule.data$TIME == PAC_TIME]] <- 1
     if (PAC_TIME < 4) {
       input.data$NAC_DEC[input.data$TIME == PAC_TIME] <- NA
     }

@@ -45,73 +45,65 @@ shinyServer(function(input,output,session) {
 
 	#Estimate individual parameter values based on the information in Rinput.data
 	Rbayes.data <- reactive({
-		withProgress(
-			message = "Estimating individual parameters...",
-			value = 0,
-			{
-			input.data <- Rinput.data()  #Read in the reactive "input.data"
-			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
-			bayes.data <- bayesian.function(input.data)
-			}  #Brackets closing expression for "withProgress"
-		)  #Brackets closing "withProgress"
+		input.data <- Rinput.data()  #Read in the reactive "input.data"
+		input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
+		bayes.data <- bayesian.function(input.data)
 	})  #Brackets closing "Rbayes.data"
 
 	#Use individual parameter estimates in Rbayes.data to simulate a concentration-time profile for the individual
 	Rconc.data <- reactive({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		bayes.data <- Rbayes.data()  #Read in reactive "bayes.data"
-		input.conc.data <- merge(input.data,bayes.data,all = T)  #Merge the two data frames
-		conc.data <- conc.function(input.conc.data)  #Simulate concentrations
+		#Update ERR_X values in model code - previously set to zero, but now we have individual parameter values for CL, V, KA and F
+		parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
+		#Update the covariate values in model code - dependent on the individual input
+		covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+		#Update the omega values in model code - omega here are NOT between-subject variability but the precision of the parameters
+		omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)	#Simulating only the individual based on the Bayes estimates - no need for variability
+		#Formally update the model parameters
+		update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+		#Input dataset for differential equation solver
+		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+		#Run differential equation solver
+		conc.data <- update.parameters %>% data_set(input.conc.data) %>% mrgsim(tgrid = TIME.tgrid)
+		conc.data <- as.data.frame(conc.data)
 	})  #Brackets closing "Rconc.data"
 
-	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
-	Rci.data <- reactive({
-		withProgress(
-			message = "Simulating 95% prediction intervals...",
-			value = 0,
-			{
-			  input.data <- Rinput.data() #Read in reactive "input.data"
-				bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
-				hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
-		  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
-				se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
-				#Simulate an error distribution for each parameter
-				ETA.list <- lapply(1:n, function(x) {
-				  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
-				  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
-				  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
-				  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
-				  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
-				})
-				#Calculate concentrations at each time-point for each individual
-				ci.data <- lapply(1:n, function(x) {
-				  pop.data <- data_frame(TIME = TIME.ci,
-				                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
-				                        SDAC = input.data$SDAC[1],
-				                        WT = input$WT,
-				                        ETA1 = ETA.list[[x]][[1]],
-				                        ETA2 = ETA.list[[x]][[2]],
-				                        ETA3 = ETA.list[[x]][[3]],
-				                        ETA4 = ETA.list[[x]][[4]],
-				                        PROD = input.data$PROD[1],
-				                        CLi = POPCL,
-				                        Vi = POPV,
-				                        KAi = POPKA,
-				                        Fi = POPF)
-          conc.function(pop.data)
-				}) %>% bind_rows
-				ci.data <- as.data.frame(ci.data)
-			} #Brackets closing expression for "withProgress"
-		)  #Brackets closing "withProgress"
-	})
-
-	#Use the hessian matrix from Rbayes.data to calculate relative standard errors for each parameter
-	#If relative standard errors are poor, then make the app show a message recommending to collect a further sample
-	Rrse.par <- reactive({
-		bayes.data <- Rbayes.data()  #Read in reactive "bayes.data"
+	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter
+	Rse.par <- reactive({
+		input.data <- Rinput.data() #Read in reactive "input.data"
+		bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
 		hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
   	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
 		se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+	})	#Brackets closing "Rse.par"
+
+	#Simulate 95% prediction intervals for the individual based on standard errors
+	Rci.data <- reactive({
+	  input.data <- Rinput.data() #Read in reactive "input.data"
+		bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
+		se.par <- Rse.par()	#Read in reactive "se.par"
+		#Simulate concentrations for a population defined by the individual's Bayes parameters and precision of those parameters
+		#Update ERR_X values in model code - previously set to zero, but now we have individual parameter values for CL, V, KA and F
+		parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
+		#Update the covariate values in model code - dependent on the individual input
+		covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+		#Update the omega values in model code - omega here are NOT between-subject variability but the precision of the parameters
+		omega.list <- list(ETA_CL = (se.par[1])^2,ETA_V = (se.par[2])^2,ETA_KA = (se.par[3])^2,ETA_F = (se.par[4])^2)	#Values need to be specified as "variance" not SD
+		#Formally update the model parameters
+		update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+		#Input dataset for differential equation solver
+		input.ci.data <- expand.ev(ID = 1:n,amt = input.data$AMT[1])
+		#Run differential equation solver
+		ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(tgrid = c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8)))
+		ci.data <- as.data.frame(ci.data)
+	})
+
+	#Calculate relative standard errors using the previously calculated standard errors
+	#If relative standard errors are poor, then make the app show a message recommending to collect a further sample
+	Rrse.par <- reactive({
+		bayes.data <- Rbayes.data()  #Read in reactive "bayes.data"
+		se.par <- Rse.par()	#Read in reactive "se.par"
 		CL.rse <- se.par[1]/exp(bayes.data$ETA1)*100	#Relative standard error for the ETA for CL
 		V.rse <- se.par[2]/exp(bayes.data$ETA2)*100	#Relative standard error for the ETA for V
 		KA.rse <- se.par[3]/exp(bayes.data$ETA3)*100 #Relative standard error for the ETA for KA
@@ -122,14 +114,10 @@ shinyServer(function(input,output,session) {
 	#Use individual simulated concentration-time profile (Rconc.data) to decide whether the individual should receive NAC or not
 	Rdecision.data <- reactive({
 		conc.data <- Rconc.data()	#Read in reactive "conc.data"
-		rm.decision.data <- ddply(conc.data, .(TIME), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
-			rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
-			if (rm.decision > 1) rm.decision <- 1
-		#Combine results into a single data frame
-		decision.data <- data.frame(row.names = c("Rumack-Matthew Nomogram"),"Decision" = rm.decision)
-		decision.data$Decision[decision.data$Decision == 0] <- "No"
-		decision.data$Decision[decision.data$Decision == 1] <- "Yes"
-		decision.data
+		rm.decision.data <- ddply(conc.data, .(time), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
+		rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
+		if (rm.decision > 1) rm.decision <- 1
+		rm.decision
 	})  #Brackets closing "Rdecision.data"
 
 	############
@@ -300,12 +288,12 @@ shinyServer(function(input,output,session) {
 
 		#95% prediction intervals
 		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+			plotobj3 <- plotobj3 + stat_summary(aes(x = time,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
 		if (input$IND_BAY == TRUE) {
-			plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+			plotobj3 <- plotobj3 + geom_line(aes(x = time,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
 		}
 		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
@@ -356,8 +344,8 @@ shinyServer(function(input,output,session) {
 			}
 		}
 		if (input$IND_BAY == TRUE) {
-			if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-			if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data == 1) recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data == 0) recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
 		recommendation.text
 	})	#Brackets closing "renderText"
@@ -378,6 +366,7 @@ shinyServer(function(input,output,session) {
 			inputEnv$conc.data <- Rconc.data()
 			inputEnv$decision.data <- Rdecision.data()
 			inputEnv$ci.data <- Rci.data()
+			inputEnv$se.par <- Rse.par()
 			inputEnv$rse.par <- Rrse.par()
 			#Temporarily switch to the temp dir, in case you don't have the permission to write to the current working directory
 			owd <- setwd(tempdir())
