@@ -2,9 +2,9 @@ name: PrototypeAPAP3
 account: jessicawojciechowski
 server: shinyapps.io
 appId: 105838
-bundleId: 475860
+bundleId: 475869
 url: https://jessicawojciechowski.shinyapps.io/PrototypeAPAP3/
-when: 1465414136.80866
+when: 1465414823.6704
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: runApp.R|www/umb_ctm_logo.png|www/unisa_logo.png
