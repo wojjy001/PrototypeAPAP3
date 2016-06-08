@@ -25,6 +25,7 @@
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
                 seq(from = 4,to = 12,by = 2),
                 seq(from = 16,to = 32,by = 8))
+  TIME.tgrid <- c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8))
 #Set the number of individuals that make up the 95% prediction intervals
   n <- 2000
 #95% prediction interval functions
@@ -218,9 +219,9 @@
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC
   rm.function <- function(input.data) {
-    PAC_TIME <- input.data$TIME
+    PAC_TIME <- input.data$time
     input.data$NAC_DEC <- 0
-    input.data$NAC_DEC[input.data$IPRE[input.data$TIME == PAC_TIME] > rule.data$CONCrm[rule.data$TIME == PAC_TIME]] <- 1
+    input.data$NAC_DEC[input.data$IPRE[input.data$time == PAC_TIME] > rule.data$CONCrm[rule.data$TIME == PAC_TIME]] <- 1
     if (PAC_TIME < 4) {
       input.data$NAC_DEC[input.data$TIME == PAC_TIME] <- NA
     }
