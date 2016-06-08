@@ -12,7 +12,6 @@
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
   library(mrgsolve) #Metrum differential equation solver for pharmacometrics
-  library(compiler) #Compile repeatedly called functions
   #Directories on Windows
     # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
     # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
@@ -162,28 +161,16 @@
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
 
-        # input.bayes.data <- input.data
-        # input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
-        # input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
-        # input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
-        # input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
-        # input.bayes.data$CLi <- POPCL  #Initial value for clearance
-        # input.bayes.data$Vi <- POPV  #Initial value for volume
-        # input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
-        # input.bayes.data$Fi <- POPF  #Initial value for bioavailability
-        # conc.data <- conc.function(input.bayes.data)  #Run the concentration function
-
-        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)
-        covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
-        omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
-        update.parameters <- mod %>% param(ETAfit.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
-    		#Input dataset for differential equation solver
-    		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
-    		#Run differential equation solver
-        time.bayes <- c(input.data$TIME)
-    		conc.data <- update.parameters %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)
-    		conc.data <- as.data.frame(conc.data)
-        conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
+        input.bayes.data <- input.data
+        input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
+        input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
+        input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
+        input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
+        input.bayes.data$CLi <- POPCL  #Initial value for clearance
+        input.bayes.data$Vi <- POPV  #Initial value for volume
+        input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
+        input.bayes.data$Fi <- POPF  #Initial value for bioavailability
+        conc.data <- conc.function(input.bayes.data)  #Run the concentration function
 
         Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
         #If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
@@ -200,9 +187,8 @@
         OFVBayes <- -1*sum(loglikpost,loglikprior)
         OFVBayes
       }
-      bayesian.ofv.cmpf <- cmpfun(bayesian.ofv) #Compile bayesian.ofv function
     #Optimise the ETA parameters to minimise the OFVBayes
-      resultfit <- optim(par,bayesian.ofv.cmpf,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
+      resultfit <- optim(par,bayesian.ofv,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
     #Put results in a data frame
       resultfit.data <- data.frame(ETA1 = log(resultfit$par[1]),
                                    ETA2 = log(resultfit$par[2]),
