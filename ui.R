@@ -24,7 +24,7 @@ body <-
 	dashboardBody(
     useShinyjs(),
 		tags$head(
-			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+			tags$link(rel = "stylesheet",type = "text/css",href = "custom.css")
 		),
 		tabItems(
 			tabItem(tabName = "patient",

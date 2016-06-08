@@ -94,12 +94,12 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
   #95% prediction intervals
   if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-    plotobj1 <- plotobj1 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+    plotobj1 <- plotobj1 + stat_summary(aes(x = time,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
   }
 
   #Individual patient data
   if (input$IND_BAY == TRUE) {
-  	plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+  	plotobj1 <- plotobj1 + geom_line(aes(x = time,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
   }
 	plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
