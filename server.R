@@ -45,15 +45,9 @@ shinyServer(function(input,output,session) {
 
 	#Estimate individual parameter values based on the information in Rinput.data
 	Rbayes.data <- reactive({
-		withProgress(
-			message = "Estimating individual parameters...",
-			value = 0,
-			{
-			input.data <- Rinput.data()  #Read in the reactive "input.data"
-			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
-			bayes.data <- bayesian.function(input.data)
-			}  #Brackets closing expression for "withProgress"
-		)  #Brackets closing "withProgress"
+		input.data <- Rinput.data()  #Read in the reactive "input.data"
+		input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
+		bayes.data <- bayesian.function(input.data)
 	})  #Brackets closing "Rbayes.data"
 
 	#Use individual parameter estimates in Rbayes.data to simulate a concentration-time profile for the individual
@@ -66,25 +60,19 @@ shinyServer(function(input,output,session) {
 
 	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
 	Rci.data <- reactive({
-		withProgress(
-			message = "Simulating 95% prediction intervals...",
-			value = 0,
-			{
-			  input.data <- Rinput.data() #Read in reactive "input.data"
-				bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
-				hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
-		  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
-				se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
-				#Simulate concentrations for a population defined by the individual's Bayes parameters and precision of those parameters
-				parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
-				covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
-				omega.list <- list(ETA_CL = (se.par[1])^2,ETA_V = (se.par[2])^2,ETA_KA = (se.par[3])^2,ETA_F = (se.par[4])^2)
-				update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
-				input.ci.data <- expand.ev(ID = 1:n,amt = input.data$AMT[1])
-				ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(end = max(TIME.base),delta = 1)
-				ci.data <- as.data.frame(ci.data)
-			} #Brackets closing expression for "withProgress"
-		)  #Brackets closing "withProgress"
+	  input.data <- Rinput.data() #Read in reactive "input.data"
+		bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
+		hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
+  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
+		se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+		#Simulate concentrations for a population defined by the individual's Bayes parameters and precision of those parameters
+		parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
+		covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+		omega.list <- list(ETA_CL = (se.par[1])^2,ETA_V = (se.par[2])^2,ETA_KA = (se.par[3])^2,ETA_F = (se.par[4])^2)
+		update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+		input.ci.data <- expand.ev(ID = 1:n,amt = input.data$AMT[1])
+		ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(end = max(TIME.base),delta = 1)
+		ci.data <- as.data.frame(ci.data)
 	})
 
 	#Use the hessian matrix from Rbayes.data to calculate relative standard errors for each parameter
