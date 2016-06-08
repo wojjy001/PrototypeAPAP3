@@ -239,6 +239,7 @@ shinyServer(function(input,output,session) {
 			inputEnv$conc.data <- Rconc.data()
 			inputEnv$decision.data <- Rdecision.data()
 			inputEnv$ci.data <- Rci.data()
+			inputEnv$se.par <- Rse.par()
 			inputEnv$rse.par <- Rrse.par()
 			#Temporarily switch to the temp dir, in case you don't have the permission to write to the current working directory
 			owd <- setwd(tempdir())
