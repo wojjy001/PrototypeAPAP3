@@ -104,10 +104,9 @@
             PROD4_KA = -0.348731,
             WT = 70,
             SDAC = 0,
-            PROD = 0,
-            DOSE = 20000
+            PROD = 0
 
-    $CMT    GUT CENT DUMP
+    $INIT   GUT = 0, CENT = 0, DUMP = 0
 
     $OMEGA  labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
             0.035022858 0.0054543827 0.45608978 0.52338442
@@ -120,22 +119,21 @@
             if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA);
             if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA);                                              if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA);
             double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F);
-            double AMT = 0;
-            if (time == 0) AMT = DOSE*F;
+            F_GUT = F;
 
     $ODE    double CP = CENT/V;
 
-            dxdt_GUT = AMT -KA*GUT;
+            dxdt_GUT = -KA*GUT;
             dxdt_CENT = KA*GUT  -CL/V*CENT;
             dxdt_DUMP = CL/V*CENT;
 
     $TABLE  table(CP) = CENT/V;
 
-    $CAPTURE CL V KA F AMT
+    $CAPTURE CL V KA F
     '
     mod <- mcode("pop",code)
-    data <- expand.ev(ID = 1:1000,DOSE = 20000)
-    out <- mod %>% data_set(data)  %>% init(GUT = DOSE*F) %>% mrgsim(end = 24,delta = 1)
+    data <- expand.ev(ID = 1:1000,amt = 20000)
+    out <- mod %>% data_set(data) %>% mrgsim(end = 24,delta = 1)
     plot.output <- out %>% plot(CP~.)
     plot.output
 #------------------------------------------------------------------------------------------
