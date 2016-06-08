@@ -94,6 +94,10 @@
             POPV = 76.1352,
             POPKA = 0.66668,
             POPF = 1,
+            ERR_CL = 0,
+            ERR_V = 0,
+            ERR_KA = 0,
+            ERR_F = 0,
             WT_CL = 0.75,
             WT_V = 1,
             SDAC_F = -0.179735,
@@ -108,17 +112,19 @@
 
     $INIT   GUT = 0, CENT = 0, DUMP = 0
 
-    $OMEGA  labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
+    $OMEGA  block = FALSE
+            labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
             0.035022858 0.0054543827 0.45608978 0.52338442
 
-    $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL);
-            double V = POPV*pow(WT/70,WT_V)*exp(ETA_V);
+    $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL)*exp(ERR_CL);
+            double V = POPV*pow(WT/70,WT_V)*exp(ETA_V)*exp(ERR_V);
             double KA = POPKA;
-            if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA);
-            if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA);
-            if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA);
-            if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA);                                              if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA);
-            double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F);
+            if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA)*exp(ERR_KA);
+            if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA)*exp(ERR_KA);
+            if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA)*exp(ERR_KA);
+            if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA)*exp(ERR_KA);
+            if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA)*exp(ERR_KA);
+            double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F)*exp(ERR_F);
             F_GUT = F;
 
     $ODE    double CP = CENT/V;
@@ -131,11 +137,9 @@
 
     $CAPTURE CL V KA F
     '
-    mod <- mcode("pop",code)
-    data <- expand.ev(ID = 1:1000,amt = 20000)
-    out <- mod %>% data_set(data) %>% mrgsim(end = 24,delta = 1)
-    plot.output <- out %>% plot(CP~.)
-    plot.output
+    mod <- mcode("pop",code)  #Compile the model code on application initiation
+    #There is opportunity to simply update model parameters after the model code has been compiled
+
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {

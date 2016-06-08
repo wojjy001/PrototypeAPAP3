@@ -16,8 +16,7 @@ sidebar <-
 		sidebarMenu(
       menuItem("Patient Information",tabName = "patient",icon = icon("child")),
       menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
-		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart")),
-      menuItem("mrgsolve Test Output",tabName = "mrgsolve-test")
+		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
 		)	#Brackets closing "sidebarMenu"
 	) #Brackets closing "dashboardSidebar"
 #Application's body
@@ -120,10 +119,7 @@ body <-
 					width = 10,
 					status = "primary"
 				)	#Brackets closing "box"
-			), #Brackets closing "tabItem" for "results"
-      tabItem(tabName = "mrgsolve-test"
-        p("text")
-      ) #Brackets closing "tabItem" for "mrgsolve-test"
+			) #Brackets closing "tabItem" for "results"
 		)  #Brackets closing "tabItems"
 	) #Brackets closing "dashboardBody"
 #------------------------------------------------------------------------------------------

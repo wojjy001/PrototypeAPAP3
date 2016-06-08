@@ -75,31 +75,13 @@ shinyServer(function(input,output,session) {
 				hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
 		  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
 				se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
-				#Simulate an error distribution for each parameter
-				ETA.list <- lapply(1:n, function(x) {
-				  ETA1 <- log(rlnorm(1,meanlog = bayes.data$ETA1,sd = se.par[1]))
-				  ETA2 <- log(rlnorm(1,meanlog = bayes.data$ETA2,sd = se.par[2]))
-				  ETA3 <- log(rlnorm(1,meanlog = bayes.data$ETA3,sd = se.par[3]))
-				  ETA4 <- log(rlnorm(1,meanlog = bayes.data$ETA4,sd = se.par[4]))
-				  ETA.list <- list(ETA1,ETA2,ETA3,ETA4,x)
-				})
-				#Calculate concentrations at each time-point for each individual
-				ci.data <- lapply(1:n, function(x) {
-				  pop.data <- data_frame(TIME = TIME.ci,
-				                        AMT = c(input$AMT*1000,rep(0,times=length(TIME.ci)-1)),
-				                        SDAC = input.data$SDAC[1],
-				                        WT = input$WT,
-				                        ETA1 = ETA.list[[x]][[1]],
-				                        ETA2 = ETA.list[[x]][[2]],
-				                        ETA3 = ETA.list[[x]][[3]],
-				                        ETA4 = ETA.list[[x]][[4]],
-				                        PROD = input.data$PROD[1],
-				                        CLi = POPCL,
-				                        Vi = POPV,
-				                        KAi = POPKA,
-				                        Fi = POPF)
-          conc.function(pop.data)
-				}) %>% bind_rows
+				#Simulate concentrations for a population defined by the individual's Bayes parameters and precision of those parameters
+				parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
+				covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+				omega.list <- list(ETA_CL = (se.par[1])^2,ETA_V = (se.par[2])^2,ETA_KA = (se.par[3])^2,ETA_F = (se.par[4])^2)
+				update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+				input.ci.data <- expand.ev(ID = 1:n,amt = input.data$AMT[1])
+				ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(end = max(TIME.base),delta = 1)
 				ci.data <- as.data.frame(ci.data)
 			} #Brackets closing expression for "withProgress"
 		)  #Brackets closing "withProgress"
@@ -151,9 +133,9 @@ shinyServer(function(input,output,session) {
 		max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE))+20
 		if (input$CI95 == TRUE) {
 		  #Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
-		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),rule.data$CONCrm[rule.data$TIME == 4]))+20
+		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$CP),rule.data$CONCrm[rule.data$TIME == 4]))+20
 		  #Calculate the maximum plottable value for y-axis
-		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE)))+20
+		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$CP)))+20
 		}
 
 		#Start plotting
@@ -169,7 +151,7 @@ shinyServer(function(input,output,session) {
 
 		#95% prediction intervals
 		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-			plotobj3 <- plotobj3 + stat_summary(aes(x = TIME,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+			plotobj3 <- plotobj3 + stat_summary(aes(x = time,y = CP),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
