@@ -12,6 +12,7 @@
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
   library(mrgsolve) #Metrum differential equation solver for pharmacometrics
+  library(compiler) #Compile repeatedly called functions
   #Directories on Windows
     # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
     # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
@@ -199,8 +200,9 @@
         OFVBayes <- -1*sum(loglikpost,loglikprior)
         OFVBayes
       }
+      bayesian.ofv.cmpf <- cmpfun(bayesian.ofv) #Compile bayesian.ofv function
     #Optimise the ETA parameters to minimise the OFVBayes
-      resultfit <- optim(par,bayesian.ofv,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
+      resultfit <- optim(par,bayesian.ofv.cmpf,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
     #Put results in a data frame
       resultfit.data <- data.frame(ETA1 = log(resultfit$par[1]),
                                    ETA2 = log(resultfit$par[2]),
