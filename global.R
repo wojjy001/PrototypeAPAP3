@@ -26,9 +26,7 @@
                 seq(from = 4,to = 12,by = 2),
                 seq(from = 16,to = 32,by = 8))
 #Set the number of individuals that make up the 95% prediction intervals
-  n <- 1000
-#Define a time sequence for the 95% prediction intervals - shorter length than TIME.base for speed
-  TIME.ci <- c(0,1,2,3,4,8,12,16,20,24,32)
+  n <- 2000
 #95% prediction interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
