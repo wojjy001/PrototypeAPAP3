@@ -114,6 +114,10 @@
             labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
             0.035022858 0.0054543827 0.45608978 0.52338442
 
+    $SIGMA  block = FALSE
+            labels = s(ERR_PRO)
+            0.101285
+
     $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL)*exp(ERR_CL);
             double V = POPV*pow(WT/70,WT_V)*exp(ETA_V)*exp(ERR_V);
             double KA = POPKA;
@@ -131,11 +135,12 @@
             dxdt_CENT = KA*GUT  -CL/V*CENT;
             dxdt_DUMP = CL/V*CENT;
 
-    $TABLE  table(CP) = CENT/V;
+    $TABLE  table(IPRE) = CENT/V;
+            table(DV) = table(IPRE)*(1 + ERR_PRO);
 
     $CAPTURE CL V KA F
     '
-    mod <- mcode("pop",code)  #Compile the model code on application initiation
+    mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
 
 #------------------------------------------------------------------------------------------
