@@ -115,13 +115,9 @@ shinyServer(function(input,output,session) {
 	Rdecision.data <- reactive({
 		conc.data <- Rconc.data()	#Read in reactive "conc.data"
 		rm.decision.data <- ddply(conc.data, .(time), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
-			rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
-			if (rm.decision > 1) rm.decision <- 1
-		#Combine results into a single data frame
-		decision.data <- data.frame(row.names = c("Rumack-Matthew Nomogram"),"Decision" = rm.decision)
-		decision.data$Decision[decision.data$Decision == 0] <- "No"
-		decision.data$Decision[decision.data$Decision == 1] <- "Yes"
-		decision.data
+		rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
+		if (rm.decision > 1) rm.decision <- 1
+		rm.decision
 	})  #Brackets closing "Rdecision.data"
 
 	############
@@ -217,8 +213,8 @@ shinyServer(function(input,output,session) {
 			}
 		}
 		if (input$IND_BAY == TRUE) {
-			if (decision.data$Decision[1] == "Yes") recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
-			if (decision.data$Decision[1] == "No") recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data == 1) recommendation.text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+			if (decision.data == 0) recommendation.text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
 		recommendation.text
 	})	#Brackets closing "renderText"
