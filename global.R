@@ -58,6 +58,7 @@
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
   #Function for calculating concentrations in a loop
+  #This function is used during Bayesian estimation
     conc.function <- function(df){
       for(i in 2:nrow(df)) {
         #Specify individual parameter values
@@ -89,6 +90,7 @@
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
   #Using mrgsolve - analytical solutions
+  #This compiled model is used for simulating the individual's estimated profile and 95% prediction intervals
     code <- '
     $PARAM    POPCL = 14.6076,
               POPV = 76.1352,
