@@ -85,61 +85,124 @@
       }
       df
     }
+# #------------------------------------------------------------------------------------------
+# #Calculate concentrations at each time-point for the individual
+#   #Using mrgsolve - differential equations
+#     code <- '
+#     $PARAM  POPCL = 14.6076,
+#             POPV = 76.1352,
+#             POPKA = 0.66668,
+#             POPF = 1,
+#             ERR_CL = 0,
+#             ERR_V = 0,
+#             ERR_KA = 0,
+#             ERR_F = 0,
+#             WT_CL = 0.75,
+#             WT_V = 1,
+#             SDAC_F = -0.179735,
+#             PROD0_KA = 0,
+#             PROD1_KA = 1.41279,
+#             PROD2_KA = -0.488444,
+#             PROD3_KA = 0.0222383,
+#             PROD4_KA = -0.348731,
+#             WT = 70,
+#             SDAC = 0,
+#             PROD = 0
+#
+#     $INIT   GUT = 0, CENT = 0, DUMP = 0
+#
+#     $OMEGA  block = TRUE
+#             labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
+#             0.035022858
+#             0.0044077284  0.0054543827
+#             0.10313184 -0.0034085583 0.45608978
+#             0.016587014 0.002349424 -0.15735995 0.52338442
+#
+#     $SIGMA  block = FALSE
+#             labels = s(ERR_PRO)
+#             0.101285
+#
+#     $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL+ERR_CL);
+#             double V = POPV*pow(WT/70,WT_V)*exp(ETA_V+ERR_V);
+#             double KA = POPKA;
+#             if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA+ERR_KA);
+#             if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA+ERR_KA);
+#             if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA+ERR_KA);
+#             if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA+ERR_KA);
+#             if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA+ERR_KA);
+#             double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F+ERR_F);
+#             F_GUT = F;
+#
+#     $ODE    double CP = CENT/V;
+#
+#             dxdt_GUT = -KA*GUT;
+#             dxdt_CENT = KA*GUT  -CL/V*CENT;
+#             dxdt_DUMP = CL/V*CENT;
+#
+#     $TABLE  table(IPRE) = CENT/V;
+#             table(DV) = table(IPRE)*(1 + ERR_PRO);
+#
+#     $CAPTURE CL V KA F
+#     '
+#     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
+#     #There is opportunity to simply update model parameters after the model code has been compiled
+
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
-  #Using mrgsolve
+  #Using mrgsolve - analytical solutions
     code <- '
-    $PARAM  POPCL = 14.6076,
-            POPV = 76.1352,
-            POPKA = 0.66668,
-            POPF = 1,
-            ERR_CL = 0,
-            ERR_V = 0,
-            ERR_KA = 0,
-            ERR_F = 0,
-            WT_CL = 0.75,
-            WT_V = 1,
-            SDAC_F = -0.179735,
-            PROD0_KA = 0,
-            PROD1_KA = 1.41279,
-            PROD2_KA = -0.488444,
-            PROD3_KA = 0.0222383,
-            PROD4_KA = -0.348731,
-            WT = 70,
-            SDAC = 0,
-            PROD = 0
+    $PARAM    POPCL = 14.6076,
+              POPV = 76.1352,
+              POPKA = 0.66668,
+              POPF = 1,
+              ERR_CL = 0,
+              ERR_V = 0,
+              ERR_KA = 0,
+              ERR_F = 0,
+              WT_CL = 0.75,
+              WT_V = 1,
+              SDAC_F = -0.179735,
+              PROD0_KA = 0,
+              PROD1_KA = 1.41279,
+              PROD2_KA = -0.488444,
+              PROD3_KA = 0.0222383,
+              PROD4_KA = -0.348731,
+              WT = 70,
+              SDAC = 0,
+              PROD = 0
 
-    $INIT   GUT = 0, CENT = 0, DUMP = 0
+    $INIT     GUT = 0, CENT = 0
 
-    $OMEGA  block = FALSE
-            labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
-            0.035022858 0.0054543827 0.45608978 0.52338442
+    $PKMODEL  ncmt = 1,
+              depot = TRUE,
+              trans = 2
 
-    $SIGMA  block = FALSE
-            labels = s(ERR_PRO)
-            0.101285
+    $OMEGA    block = TRUE
+              labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
+              0.035022858
+              0.0044077284  0.0054543827
+              0.10313184 -0.0034085583 0.45608978
+              0.016587014 0.002349424 -0.15735995 0.52338442
 
-    $MAIN   double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL)*exp(ERR_CL);
-            double V = POPV*pow(WT/70,WT_V)*exp(ETA_V)*exp(ERR_V);
-            double KA = POPKA;
-            if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA)*exp(ERR_KA);
-            if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA)*exp(ERR_KA);
-            if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA)*exp(ERR_KA);
-            if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA)*exp(ERR_KA);
-            if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA)*exp(ERR_KA);
-            double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F)*exp(ERR_F);
-            F_GUT = F;
+    $SIGMA    block = FALSE
+              labels = s(ERR_PRO)
+              0.101285
 
-    $ODE    double CP = CENT/V;
+    $MAIN     double CL = POPCL*pow(WT/70,WT_CL)*exp(ETA_CL+ERR_CL);
+              double V = POPV*pow(WT/70,WT_V)*exp(ETA_V+ERR_V);
+              double KA = POPKA;
+              if (PROD == 0) KA = POPKA*(1+PROD0_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 1) KA = POPKA*(1+PROD1_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 2) KA = POPKA*(1+PROD2_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 3) KA = POPKA*(1+PROD3_KA)*exp(ETA_KA+ERR_KA);
+              if (PROD == 4) KA = POPKA*(1+PROD4_KA)*exp(ETA_KA+ERR_KA);
+              double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F+ERR_F);
+              F_GUT = F;
 
-            dxdt_GUT = -KA*GUT;
-            dxdt_CENT = KA*GUT  -CL/V*CENT;
-            dxdt_DUMP = CL/V*CENT;
+    $TABLE    table(IPRE) = CENT/V;
+              table(DV) = table(IPRE)*(1 + ERR_PRO);
 
-    $TABLE  table(IPRE) = CENT/V;
-            table(DV) = table(IPRE)*(1 + ERR_PRO);
-
-    $CAPTURE CL V KA F
+    $CAPTURE  CL V KA F
     '
     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
@@ -158,17 +221,31 @@
         ETA2fit <- log(par[2]) #Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
-        input.bayes.data <- input.data
-        input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
-        input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
-        input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
-        input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
-        input.bayes.data$CLi <- POPCL  #Initial value for clearance
-        input.bayes.data$Vi <- POPV  #Initial value for volume
-        input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
-        input.bayes.data$Fi <- POPF  #Initial value for bioavailability
-        conc.data <- conc.function(input.bayes.data)  #Run the concentration function
-        Yhat <- conc.data$IPRE
+
+        # input.bayes.data <- input.data
+        # input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
+        # input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
+        # input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
+        # input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
+        # input.bayes.data$CLi <- POPCL  #Initial value for clearance
+        # input.bayes.data$Vi <- POPV  #Initial value for volume
+        # input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
+        # input.bayes.data$Fi <- POPF  #Initial value for bioavailability
+        # conc.data <- conc.function(input.bayes.data)  #Run the concentration function
+
+        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)
+        covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+        omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
+        update.parameters <- mod %>% param(ETAfit.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+    		#Input dataset for differential equation solver
+    		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+    		#Run differential equation solver
+        time.bayes <- c(input.data$TIME)
+    		conc.data <- update.parameters %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)
+    		conc.data <- as.data.frame(conc.data)
+        conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
+
+        Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
         #If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
         Yhat[is.na(Yobs) == T] <- NA
         #Posterior component (from the data)
