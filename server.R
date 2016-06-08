@@ -54,8 +54,19 @@ shinyServer(function(input,output,session) {
 	Rconc.data <- reactive({
 		input.data <- Rinput.data()  #Read in reactive "input.data"
 		bayes.data <- Rbayes.data()  #Read in reactive "bayes.data"
-		input.conc.data <- merge(input.data,bayes.data,all = T)  #Merge the two data frames
-		conc.data <- conc.function(input.conc.data)  #Simulate concentrations
+		#Update ERR_X values in model code - previously set to zero, but now we have individual parameter values for CL, V, KA and F
+		parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
+		#Update the covariate values in model code - dependent on the individual input
+		covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+		#Update the omega values in model code - omega here are NOT between-subject variability but the precision of the parameters
+		omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)	#Simulating only the individual based on the Bayes estimates - no need for variability
+		#Formally update the model parameters
+		update.parameters <- mod %>% param(parameter.list) %>% param(covariate.list) %>% omat(dmat(omega.list))
+		#Input dataset for differential equation solver
+		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+		#Run differential equation solver
+		conc.data <- update.parameters %>% data_set(input.conc.data) %>% mrgsim(tgrid = TIME.tgrid)
+		conc.data <- as.data.frame(conc.data)
 	})  #Brackets closing "Rconc.data"
 
 	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter
@@ -86,8 +97,6 @@ shinyServer(function(input,output,session) {
 		#Run differential equation solver
 		ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(tgrid = c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8)))
 		ci.data <- as.data.frame(ci.data)
-		print(head(ci.data))
-		ci.data
 	})
 
 	#Calculate relative standard errors using the previously calculated standard errors
@@ -105,7 +114,7 @@ shinyServer(function(input,output,session) {
 	#Use individual simulated concentration-time profile (Rconc.data) to decide whether the individual should receive NAC or not
 	Rdecision.data <- reactive({
 		conc.data <- Rconc.data()	#Read in reactive "conc.data"
-		rm.decision.data <- ddply(conc.data, .(TIME), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
+		rm.decision.data <- ddply(conc.data, .(time), rm.function)  #Decide for each time-point in "conc.data" whether the individual should receive NAC or not according to the RM nomogram
 			rm.decision <- sum(na.omit(rm.decision.data$NAC_DEC))
 			if (rm.decision > 1) rm.decision <- 1
 		#Combine results into a single data frame
@@ -134,9 +143,9 @@ shinyServer(function(input,output,session) {
 		max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE))+20
 		if (input$CI95 == TRUE) {
 		  #Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
-		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$CP),rule.data$CONCrm[rule.data$TIME == 4]))+20
+		  max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE),rule.data$CONCrm[rule.data$TIME == 4]))+20
 		  #Calculate the maximum plottable value for y-axis
-		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$CP)))+20
+		  max.conc <- max(c(na.omit(input.data$PAC),conc.data$IPRE,CI95hi(ci.data$IPRE)))+20
 		}
 
 		#Start plotting
@@ -157,7 +166,7 @@ shinyServer(function(input,output,session) {
 
 	  #Individual patient data
 		if (input$IND_BAY == TRUE) {
-			plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
+			plotobj3 <- plotobj3 + geom_line(aes(x = time,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
 		}
 		plotobj3 <- plotobj3 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
 
