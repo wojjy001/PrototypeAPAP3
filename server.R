@@ -58,14 +58,20 @@ shinyServer(function(input,output,session) {
 		conc.data <- conc.function(input.conc.data)  #Simulate concentrations
 	})  #Brackets closing "Rconc.data"
 
-	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter and simulate 95% prediction intervals for the individual
-	Rci.data <- reactive({
-	  input.data <- Rinput.data() #Read in reactive "input.data"
+	#Use the hessian matrix from Rbayes.data to calculate standard errors for each parameter
+	Rse.par <- reactive({
+		input.data <- Rinput.data() #Read in reactive "input.data"
 		bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
 		hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
   	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
 		se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+	})	#Brackets closing "Rse.par"
 
+	#Simulate 95% prediction intervals for the individual based on standard errors
+	Rci.data <- reactive({
+	  input.data <- Rinput.data() #Read in reactive "input.data"
+		bayes.data <- Rbayes.data()	#Read in reactive "bayes.data"
+		se.par <- Rse.par()	#Read in reactive "se.par"
 		#Simulate concentrations for a population defined by the individual's Bayes parameters and precision of those parameters
 		#Update ERR_X values in model code - previously set to zero, but now we have individual parameter values for CL, V, KA and F
 		parameter.list <- list(ERR_CL = bayes.data$ETA1,ERR_V = bayes.data$ETA2,ERR_KA = bayes.data$ETA3,ERR_F = bayes.data$ETA4)
@@ -80,15 +86,15 @@ shinyServer(function(input,output,session) {
 		#Run differential equation solver
 		ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(tgrid = c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8)))
 		ci.data <- as.data.frame(ci.data)
+		print(head(ci.data))
+		ci.data
 	})
 
-	#Use the hessian matrix from Rbayes.data to calculate relative standard errors for each parameter
+	#Calculate relative standard errors using the previously calculated standard errors
 	#If relative standard errors are poor, then make the app show a message recommending to collect a further sample
 	Rrse.par <- reactive({
 		bayes.data <- Rbayes.data()  #Read in reactive "bayes.data"
-		hessian.matrix <- matrix(c(bayes.data$HESS11,bayes.data$HESS12,bayes.data$HESS13,bayes.data$HESS14,bayes.data$HESS21,bayes.data$HESS22,bayes.data$HESS23,bayes.data$HESS24,bayes.data$HESS31,bayes.data$HESS32,bayes.data$HESS33,bayes.data$HESS34,bayes.data$HESS41,bayes.data$HESS42,bayes.data$HESS43,bayes.data$HESS44),4,4)
-  	VCmatrix <- solve(hessian.matrix)	#Calculate the variance-covariance matrix
-		se.par <- sqrt(diag(VCmatrix))	#Calculate the parameter standard errors
+		se.par <- Rse.par()	#Read in reactive "se.par"
 		CL.rse <- se.par[1]/exp(bayes.data$ETA1)*100	#Relative standard error for the ETA for CL
 		V.rse <- se.par[2]/exp(bayes.data$ETA2)*100	#Relative standard error for the ETA for V
 		KA.rse <- se.par[3]/exp(bayes.data$ETA3)*100 #Relative standard error for the ETA for KA
@@ -146,7 +152,7 @@ shinyServer(function(input,output,session) {
 
 		#95% prediction intervals
 		if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
-			plotobj3 <- plotobj3 + stat_summary(aes(x = time,y = CP),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
+			plotobj3 <- plotobj3 + stat_summary(aes(x = time,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 		}
 
 	  #Individual patient data
