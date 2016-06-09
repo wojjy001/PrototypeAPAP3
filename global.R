@@ -157,22 +157,36 @@
     #Observation - posterior
       Yobs <- input.data$PAC  #Most of this will be NA except for the samples
     #Function for estimating individual parameters by minimising the Bayesian objective function value
+      #Update "mod" (model code for mrgsolve) parameters for Bayesian estimation
+        covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+        omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
+        update.parameters <- mod %>% param(covariate.list) %>% omat(dmat(omega.list))
+      #Input dataset for mrgsolve
+    		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+      #Time sequence for mrgsolve
+        time.bayes <- c(input.data$TIME)
+
       bayesian.ofv <- function(par) {
         ETA1fit <- log(par[1])  #Bayesian estimated ETA for clearance
         ETA2fit <- log(par[2]) #Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
 
-        input.bayes.data <- input.data
-        input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
-        input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
-        input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
-        input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
-        input.bayes.data$CLi <- POPCL  #Initial value for clearance
-        input.bayes.data$Vi <- POPV  #Initial value for volume
-        input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
-        input.bayes.data$Fi <- POPF  #Initial value for bioavailability
-        conc.data <- conc.function(input.bayes.data)  #Run the concentration function
+        # input.bayes.data <- input.data
+        # input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
+        # input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
+        # input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
+        # input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
+        # input.bayes.data$CLi <- POPCL  #Initial value for clearance
+        # input.bayes.data$Vi <- POPV  #Initial value for volume
+        # input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
+        # input.bayes.data$Fi <- POPF  #Initial value for bioavailability
+        # conc.data <- conc.function(input.bayes.data)  #Run the concentration function
+
+        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)
+        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)
+        conc.data <- as.data.frame(conc.data)
+        conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
 
         Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
         #If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
