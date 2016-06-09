@@ -29,16 +29,30 @@ body <-
 		tabItems(
 			tabItem(tabName = "patient",
 				h4("Patient Information:"),	#Heading for Patient Information section
-				numericInput("MRN","Medical Record Number (MRN):",value = 000000,step = 1),  #Numeric input for patient's medical record number (or unit record number)
+        fixedRow(
+          column(6,
+    				numericInput("MRN","Medical Record Number (MRN):",value = 000000,step = 1)  #Numeric input for patient's medical record number (or unit record number)
+          ) #Brackets closing "column"
+        ),  #Brackets closing "fixedRow"
 				fixedRow(
-					column(4,
-						textInput("FNAME", "First Name:","First Name"),	#Text input for patient's first name
-						dateInput("BDATE","Date of Birth (DD-MM-YYYY):",value = "1980-01-01",format = "dd-mm-yyyy",startview = "year"),	#Date input for patient's date of birth
-						selectInput("SEX","Gender:",choices = list("Male" = 1,"Female" = 2),selected = 1)	#Select input for patient's gender
-					),	#Brackets closing "column"
-					column(4,
-						textInput("LNAME","Last Name:","Last Name"),	#Text input for patient's last name
+					column(6,
+						textInput("FNAME", "First Name:","First Name")	#Text input for patient's first name
+          ),  #Brackets closing "column"
+          column(6,
+						textInput("LNAME","Last Name:","Last Name")	#Text input for patient's last name
+          ) #Brackets closing "column"
+        ),  #Brackets closing "fixedRow"
+        fixedRow(
+          column(6,
+						dateInput("BDATE","Date of Birth (DD-MM-YYYY):",value = "1980-01-01",format = "dd-mm-yyyy",startview = "year")  #Date input for patient's date of birth
+          ),  #Brackets closing "column"
+          column(6,
 						numericInput("WT","Weight (kg):",min = 0,max = 200,value = 70)	#Numeric input for patient weight
+          ) #Brackets closing "fixedRow"
+        ),  #Brackets closing "fixedRow"
+        fixedRow(
+          column(6,
+						selectInput("SEX","Gender:",choices = list("Male" = 1,"Female" = 2),selected = 1)	#Select input for patient's gender
 					)	#Brackets closing "column"
 				)	#Brackets closing "fixedRow"
 			),	#Brackets closing "tabItem" for "patient"
@@ -54,19 +68,23 @@ body <-
 					)	#Brackets closing "column"
 				),	#Brackets closing "fixedRow"
 				fixedRow(
-					column(4,
-						numericInput("TIME1","1: Time since ingestion (hours)",min = 0,value = 1),  #Numeric input for time of first plasma acetaminophen concentration
-						conditionalPanel(condition = "input.NPAC > 1",
-							numericInput("TIME2","2: Time since ingestion (hours)",min = 0,value = 8)  #Numeric input for time of second plasma acetaminophen concentration
-						)  #Brackets closing "conditionalPanel"
-					),  #Brackets closing "column"
-					column(4,
-						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 100),	#Numeric input for first plasma acetaminophen concentration
-						conditionalPanel(condition = "input.NPAC > 1",
-							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 70)	#Numeric input for second plasma acetaminophen concentration
-						)  #Brackets closing "conditionalPanel"
-					)  #Brackets closing "column"
-				),  #Brackets closing "fixedRow"
+					column(6,
+						numericInput("TIME1","1: Time since ingestion (hours)",min = 0,value = 1)  #Numeric input for time of first plasma acetaminophen concentration
+          ),  #Brackets closing "column"
+          column(6,
+						numericInput("PAC1","1: Concentration (mg/L)",min = 0,value = 100)	#Numeric input for first plasma acetaminophen concentration
+          ) #Brackets closing "column"
+        ),  #Brackets closing "fixedRow"
+				conditionalPanel(condition = "input.NPAC > 1",
+          fixedRow(
+            column(6,
+  							numericInput("TIME2","2: Time since ingestion (hours)",min = 0,value = 8)  #Numeric input for time of second plasma acetaminophen concentration
+            ), #Brackets closing "column"
+            column(6,
+  							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 70)	#Numeric input for second plasma acetaminophen concentration
+            ) #Brackets closing "column"
+          ) #Brackets closing "fixedRow"
+				),  #Brackets closing "conditionalPanel"
 				h4("Activated Charcoal Information:"),
 				checkboxInput("SDAC","Was single-dose activated charcoal administered?",value = FALSE,width = 500),	#Checkbox input for single-dose activated charcoal administration
 				conditionalPanel(condition = "input.SDAC",
@@ -104,19 +122,19 @@ body <-
 					),	#Brackets closing "fixedRow"
           hr(),
 					fixedRow(
-            column(9,
+            column(8,
               # h4(strong("N-acetylcysteine Decisions")),
   						strong(textOutput("NACtextOutput")),
               conditionalPanel(condition = "input.IND_BAY",
                 p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
               )  #Brackets closing "conditionalPanel"
             ),  #Brackets closing "column"
-            column(3,
+            column(4,
 						  downloadButton("downloadReport", label = strong("Download Summary Report"))
             ),  #Brackets closing "column"
 						align = "center"
 					),	#Brackets closing "fixedRow"
-					width = 10,
+					width = 12,
 					status = "primary"
 				)	#Brackets closing "box"
 			) #Brackets closing "tabItem" for "results"

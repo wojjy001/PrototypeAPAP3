@@ -225,7 +225,7 @@
 #Function for flagging if an individual should receive NAC or not based on Rumack-Matthew Nomogram
 #Function for BAYESIAN FORECASTED PAC
   rm.function <- function(input.data) {
-    PAC_TIME <- input.data$time
+    PAC_TIME <- input.data$time[1]
     input.data$NAC_DEC <- 0
     input.data$NAC_DEC[input.data$IPRE[input.data$time == PAC_TIME] > rule.data$CONCrm[rule.data$TIME == PAC_TIME]] <- 1
     if (PAC_TIME < 4) {
