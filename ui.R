@@ -65,6 +65,7 @@ body <-
         fixedRow(
           column(6,
             box(
+              h4("- Recommended dose: 1 g (15 mg/kg) up to four times a day (maximum 4 g in 24 hours)"),
               h4("- Greater than 10 g or 200 mg/kg"),
               title = strong("How much is a paracetamol overdose?"),
               status = "primary",
