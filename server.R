@@ -173,24 +173,32 @@ shinyServer(function(input,output,session) {
 	})	#Brackets closing "renderText"
 
 	output$DEMOplotOutput2 <- renderPlot({
+		#Pull out population parameter values for fixed effects from "mod"
+		parameter.data <- as.data.frame(param(mod))
+		POPCL <- parameter.data$POPCL[1]
+		POPV <- parameter.data$POPV[1]
+		POPKA <- parameter.data$POPKA[1]
+		POPF <- parameter.data$POPF[1]
+
+		#Define ggplot2 object
 		plotobj2 <- NULL
 		plotobj2 <- ggplot()
 
 		if (input$POPPK == 1) {
 			#Make ID as a factor so each individual is a different colour
-			conc.sim.data$ID <- as.factor(conc.sim.data$ID)
+			demo.conc.data$ID <- as.factor(demo.conc.data$ID)
 
 			#Population's observed concentrations
-			plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = DV,colour = ID),data = conc.sim.data[conc.sim.data$TIME > 0 & conc.sim.data$SAMPLE == 1,],size = 3,alpha = 0.7)
+			plotobj2 <- plotobj2 + geom_point(aes(x = time,y = DV,colour = ID),data = demo.conc.data[demo.conc.data$time > 0 & demo.conc.data$SAMPLE == 1,],size = 3,alpha = 0.7)
 
 			#Plot population median line
 			if (input$POP_MED == TRUE) {
-				plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.y = median,geom = "line",colour = "black",size = 1)
+				plotobj2 <- plotobj2 + stat_summary(aes(x = time,y = IPRE),data = demo.conc.data,fun.y = median,geom = "line",colour = "black",size = 1)
 			}
 
 			#Plot population 95% prediction intervals
 			if (input$POP_CI == TRUE) {
-				plotobj2 <- plotobj2 + stat_summary(aes(x = TIME,y = IPRE),data = conc.sim.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
+				plotobj2 <- plotobj2 + stat_summary(aes(x = time,y = IPRE),data = demo.conc.data,fun.ymin = "CI95lo",fun.ymax = "CI95hi",geom = "ribbon",fill = "black",alpha = 0.2)
 			}
 
 			#Show population parameter values
@@ -209,37 +217,37 @@ shinyServer(function(input,output,session) {
 		}
 
 		if (input$POPPK == 2) {
-			#Sample 4 random individuals from conc.sim.data
+			#Sample 4 random individuals from demo.conc.data
 			set.seed(123456)
-			IDrand <- sample(unique(conc.sim.data$ID),4)
-			conc.sim.data.rand <- conc.sim.data[conc.sim.data$ID %in% IDrand,]
-			conc.sim.data.rand$ID <- as.factor(conc.sim.data.rand$ID)
+			IDrand <- sample(unique(demo.conc.data$ID),4)
+			demo.conc.data.rand <- demo.conc.data[demo.conc.data$ID %in% IDrand,]
+			demo.conc.data.rand$ID <- as.factor(demo.conc.data.rand$ID)
 
 			#Plot individual predictions
 			if (input$IND_LINES == TRUE) {
-				plotobj2 <- plotobj2 + geom_line(aes(x = TIME,y = IPRE,colour = ID),data = conc.sim.data.rand,size = 1)
+				plotobj2 <- plotobj2 + geom_line(aes(x = time,y = IPRE,colour = ID),data = demo.conc.data.rand,size = 1)
 			}
 
 			#Plot observations
-			plotobj2 <- plotobj2 + geom_point(aes(x = TIME,y = DV),data = conc.sim.data.rand[conc.sim.data.rand$TIME > 0 & conc.sim.data.rand$SAMPLE == 1,],size = 3)
+			plotobj2 <- plotobj2 + geom_point(aes(x = time,y = DV),data = demo.conc.data.rand[demo.conc.data.rand$time > 0 & demo.conc.data.rand$SAMPLE == 1,],size = 3)
 
 			#Display individual parameter values
 			if (input$IND_PARM == TRUE) {
-				label.data <- ddply(conc.sim.data.rand[c("ID","AMT","CLi","Vi","KAi","Fi")], .(ID), oneperID)
-				label.data[, c("CLi","Vi","KAi")] <- lapply(label.data[, c("CLi","Vi","KAi")],round,digits = 2)
+				label.data <- ddply(demo.conc.data.rand[c("ID","amt","CL","V","KA","F")], .(ID), oneperID)
+				label.data[, c("CL","V","KA")] <- lapply(label.data[, c("CL","V","KA")],round,digits = 2)
 
 				if (input$DEMO_LOGS == FALSE) {
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV),label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.8,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.6,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(conc.sim.data.rand$DV)*0.4,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV),label = paste0("Estimated amount ingested = ",round(amt*F,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.8,label = paste0("CL = ",CL," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.6,label = paste0("V = ",V," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.4,label = paste0("ka = ",KA," h^-1")),data = label.data)
 				}
 
 				if (input$DEMO_LOGS == TRUE) {
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 1000,label = paste0("Estimated amount ingested = ",round(AMT*Fi/1000,digits = 2)," g")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 300,label = paste0("CL = ",CLi," L/h")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 100,label = paste0("V = ",Vi," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 30,label = paste0("ka = ",KAi," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 1000,label = paste0("Estimated amount ingested = ",round(amt*F,digits = 2)," g")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 300,label = paste0("CL = ",CL," L/h")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 100,label = paste0("V = ",V," L")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 30,label = paste0("ka = ",KA," h^-1")),data = label.data)
 				}
 			}
 

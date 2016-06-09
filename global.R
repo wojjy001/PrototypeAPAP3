@@ -94,53 +94,42 @@
 
     $TABLE    table(IPRE) = CENT/V;
               table(DV) = table(IPRE)*(1 + ERR_PRO);
+
+    $CAPTURE  CL V KA F
     '
     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
 
-# #------------------------------------------------------------------------------------------
-# #Simulate a population according to the PK model described
-# #Randomly sample individuals at different times for various amounts
-# #Simulate different amounts ingested, different body weights and different products
-# #Just make SDAC == 0
-#   ID <- 1:nsim  #ID sequence
-#   WT <- rlnorm(nsim,meanlog = log(70),sdlog = 0.3)  #Weight (kg)
-#   PROD <- rbinom(nsim,size = 5,prob = 0.2) #Product categories
-#   AMT <- rlnorm(nsim,meanlog = log(20),sdlog = 0.3)  #Estimated amount ingested (g)
-#   sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
-#   #Collate into a data frame
-#   input.patient.data <- data.frame(ID,  #ID sequence
-#                                   TIME = 0, #Placeholder for the time column
-#                                   nPAC = sample.lengths,
-#                                   AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
-#                                   PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
-#                                   WT,  #Patient's weight (kg)
-#                                   SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
-#                                   PROD,  #Product category ingested
-#                                   ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
-#                                   ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
-#                                   ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
-#                                   ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
-#                                   CLi = POPCL,
-#                                   Vi = POPV,
-#                                   KAi = POPKA,
-#                                   Fi = POPF)
-#   input.time.data <- lapply(input.patient.data,rep.int,times = length(TIME.base))
-#   input.time.data <- as.data.frame(input.time.data)
-#   input.time.data <- input.time.data[with(input.time.data, order(input.time.data$ID)),]
-#   input.time.data$TIME <- TIME.base
-#   input.time.data$AMT[input.time.data$TIME != 0] <- 0
-# #Make a data frame of time-points - randomly generated for each individual
-#   sample.times.function <- function(input.data) {
-#     nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
-#     sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],nPAC) #Sample nPAC time-points from TIME.base
-#     input.data$SAMPLE <- 0
-#     input.data$SAMPLE[input.data$TIME %in% sample.times] <- 1
-#     input.data
-#   }
-#   input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
-#   conc.sim.data <- conc.function(input.sim.data)
-#   conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
+#------------------------------------------------------------------------------------------
+#Simulate a population according to the PK model described
+#Randomly sample individuals at different times for various amounts
+#Simulate different amounts ingested, different body weights and different products
+#Just make SDAC == 0
+  #Collate into a data frame
+  input.patient.data <- data.frame(ID = 1:nsim,
+                                  amt = rlnorm(nsim,meanlog = log(10),sdlog = 0.3),  #Estimated amount ingested (g))
+                                  WT = rlnorm(nsim,meanlog = log(70),sdlog = 0.3),  #Weight (kg)
+                                  PROD = rbinom(nsim,size = 5,prob = 0.2), #Product categories
+                                  nPAC = rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
+                                  )
+  #Create a simulate.conc.function for the demonstration
+  demo.conc.function <- function(input.patient.data) {
+    #Randomly generate a time-sequence for the individual
+    sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],input.patient.data$nPAC) #Sample nPAC time-points from TIME.grid
+    covariate.list <- list(WT = input.patient.data$WT,PROD = input.patient.data$PROD)
+    update.parameters <- mod %>% param(covariate.list)
+    input.data <- expand.ev(ID = 1,amt = input.patient.data$amt*1000)
+    demo.conc.data <- update.parameters %>% data_set(input.data,evid = 1,cmt = 1) %>% mrgsim(tgrid = TIME.tgrid)
+    demo.conc.data <- as.data.frame(demo.conc.data)
+    demo.conc.data$ID <- input.patient.data$ID[1] #Replace ID column with individual's actual ID
+    demo.conc.data$amt <- input.patient.data$amt[1] #Re-add amt column which gets lost after mrgsim
+    demo.conc.data$SAMPLE <- 0  #Set a flag column to specify DV samples for plot
+    demo.conc.data$SAMPLE[demo.conc.data$time %in% sample.times] <- 1
+    demo.conc.data <- demo.conc.data[-1,] #Remove the first row for the individual - don't need 2 columns where time = 0
+    demo.conc.data
+  }
+  demo.conc.data <- ddply(input.patient.data, .(ID), demo.conc.function)
+
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
