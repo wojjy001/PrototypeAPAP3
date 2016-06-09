@@ -12,14 +12,15 @@
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
   library(mrgsolve) #Metrum differential equation solver for pharmacometrics
-  #Directories on Windows
-    # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
-    # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
-  #Directories on Mac
-  	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
-    pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
+#Directories on Windows
+  # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
+  # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
+#Directories on Mac
+	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
+  pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
   theme_bw2 <- theme_set(theme_bw(base_size = 16))
+  
 #------------------------------------------------------------------------------------------
 #Define time sequence
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
@@ -27,7 +28,7 @@
                 seq(from = 16,to = 32,by = 8))
   TIME.tgrid <- c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8))
 #Set the number of individuals that make up the 95% prediction intervals
-  n <- 2000
+  n <- 1000
 #95% prediction interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
@@ -35,15 +36,6 @@
   set.seed(123456)
 #One per ID function
   oneperID <- function(x) head(x,1)
-#------------------------------------------------------------------------------------------
-#Population model parameters
-  #OMEGAs (as SDs)
-    PPVCL <- sqrt(0.035022858) #PPV for CL
-    PPVV <- sqrt(0.0054543827)	#PPV for V
-    PPVKA <- sqrt(0.45608978)	#PPV for KA
-    PPVF <- sqrt(0.52338442)	#PPV for F
-  #SIGMA (as SDs)
-    ERRPRO <- 0.318253  #Proportional residual error
 
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
@@ -54,7 +46,7 @@
               POPV = 76.1352,
               POPKA = 0.66668,
               POPF = 1,
-              ERR_CL = 0,
+              ERR_CL = 0, //Place holders for Bayesian estimated ETAs
               ERR_V = 0,
               ERR_KA = 0,
               ERR_F = 0,
@@ -112,27 +104,27 @@
     #Initial parameter estimates
       initial.par <- c(exp(0),exp(0),exp(0),exp(0)) #Population values
       par <- initial.par
-    #Observation - posterior
+    #Observation - for the posterior
       Yobs <- input.data$PAC  #Most of this will be NA except for the samples
-    #Function for estimating individual parameters by minimising the Bayesian objective function value
-      #Update "mod" (model code for mrgsolve) parameters for Bayesian estimation
-        covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
-        omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
-        update.parameters <- mod %>% param(covariate.list) %>% omat(dmat(omega.list))
-      #Input dataset for mrgsolve
-    		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
-      #Time sequence for mrgsolve
-        time.bayes <- c(input.data$TIME)
+    #Update "mod" (model code for mrgsolve) parameters for Bayesian estimation
+      covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+      omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
+      update.parameters <- mod %>% param(covariate.list) %>% omat(dmat(omega.list))
+    #Input dataset for mrgsolve
+  		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+    #Time sequence for mrgsolve
+      time.bayes <- c(input.data$TIME)
 
+    #Function for estimating individual parameters by minimising the Bayesian objective function value
       bayesian.ofv <- function(par) {
         ETA1fit <- log(par[1])  #Bayesian estimated ETA for clearance
         ETA2fit <- log(par[2]) #Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
 
-        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)
-        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)
-        conc.data <- as.data.frame(conc.data)
+        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)  #List of ETA values that will be optimised - these will updated and connected to ERR_X terms in the mrgsolve model code
+        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)  #Simulate concentration-time profile with nth iteration of ETA values
+        conc.data <- as.data.frame(conc.data) #Convert to a data frame
         conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
 
         Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
@@ -141,10 +133,12 @@
         #Posterior component (from the data)
         #Log densities of residuals
         #Residual error model, Y = IPRE*(1+ERR), Y = IPRE + IPRE*ERR
+        ERRPRO <- sqrt(as.matrix(smat(mod)))  #Pull out SIGMA from "mod" - original model code
         loglikpost <- dnorm(na.omit(Yobs),mean = na.omit(Yhat),sd = na.omit(Yhat)*ERRPRO,log = T)
         #Prior component (from the model)
-        ETA <- c(ETA1fit,ETA2fit,ETA3fit,ETA4fit)
-        ETABSV <- c(PPVCL,PPVV,PPVKA,PPVF)
+        ETA <- c(ETA1fit,ETA2fit,ETA3fit,ETA4fit) #List of Bayesian estimated ETAs
+        ETABSV <- as.matrix(omat(mod)) #PPV for model parameters in "mod" - original model code
+        ETABSV <- sqrt(c(ETABSV[1,1],ETABSV[2,2],ETABSV[3,3],ETABSV[4,4]))  #Pull out the OMEGAs and convert to SDs
         loglikprior <- dnorm(ETA,mean = 0,sd = ETABSV,log = T)
         #Calculate the combined likelihood
         OFVBayes <- -1*sum(loglikpost,loglikprior)
@@ -153,6 +147,7 @@
     #Optimise the ETA parameters to minimise the OFVBayes
       resultfit <- optim(par,bayesian.ofv,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
     #Put results in a data frame
+      #Split up the elements of the Hessian matrix to calculate standard errors for parameter estimates later on
       resultfit.data <- data.frame(ETA1 = log(resultfit$par[1]),
                                    ETA2 = log(resultfit$par[2]),
                                    ETA3 = log(resultfit$par[3]),
