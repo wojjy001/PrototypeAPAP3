@@ -37,17 +37,6 @@
   oneperID <- function(x) head(x,1)
 #------------------------------------------------------------------------------------------
 #Population model parameters
-  #THETAs
-    POPCL <- 14.6076 #Clearance, L/h
-    POPV <- 76.1352	#Volume of distribution for central compartment, L
-    POPKA <- 0.66668 #Absorption rate constant, h^-1
-    POPF <- 1	#Bioavailability
-    COVSDAC_F <- -0.179735 #Effect of activated charcoal administration on F
-    COVPROD_KA0 <- 0 #Effect of product category on KA; paracetamol alone
-    COVPROD_KA1 <- 1.41279 #Effect of product category on KA; para+antihistamine
-    COVPROD_KA2 <- -0.488444  #Effect of product category on KA; para+opioid
-    COVPROD_KA3 <- 0.0222383  #Effect of product category on KA; para+other
-    COVPROD_KA4 <- -0.348731  #Effect of product category on KA; para ER
   #OMEGAs (as SDs)
     PPVCL <- sqrt(0.035022858) #PPV for CL
     PPVV <- sqrt(0.0054543827)	#PPV for V
@@ -55,37 +44,6 @@
     PPVF <- sqrt(0.52338442)	#PPV for F
   #SIGMA (as SDs)
     ERRPRO <- 0.318253  #Proportional residual error
-#------------------------------------------------------------------------------------------
-#Calculate concentrations at each time-point for the individual
-  #Function for calculating concentrations in a loop
-  #This function is used during Bayesian estimation
-    conc.function <- function(df){
-      for(i in 2:nrow(df)) {
-        #Specify individual parameter values
-        df$CLi[i] <- POPCL*((df$WT[i]/70)^0.75)*exp(df$ETA1[i])
-        df$Vi[i] <- POPV*(df$WT[i]/70)*exp(df$ETA2[i])  #Individual value for V
-        if (df$PROD[i] == 0) df$KAi[i] <- POPKA*(1+COVPROD_KA0)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 1) df$KAi[i] <- POPKA*(1+COVPROD_KA1)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 2) df$KAi[i] <- POPKA*(1+COVPROD_KA2)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 3) df$KAi[i] <- POPKA*(1+COVPROD_KA3)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 4) df$KAi[i] <- POPKA*(1+COVPROD_KA4)*exp(df$ETA3[i]) #Individual value for KA
-        df$Fi[i] <- POPF*(1+df$SDAC[i]*COVSDAC_F)*exp(df$ETA4[i]) #Individual value for F
-        #Specify initial conditions
-        df$A1[df$TIME == 0] <- df$AMT[df$TIME == 0]*df$Fi[i]  #Drug amount in the absorption compartment at time zero
-        df$A2[df$TIME == 0] <- 0 #Drug amount in the central compartment at time zero
-        df$IPRE[df$TIME == 0] <- 0  #Drug concentration in the central compartment at time zero
-
-        KEi <- df$CLi/df$Vi #Elimination rate-constant from central compartment
-        KEi[i] <- df$CLi[i]/df$Vi[i]  #Elimination rate-constant from central compartment
-        time <- df$TIME[i]-df$TIME[i-1] #Difference in time between current and previous time-point
-        A1.prev <- df$A1[i-1] #Amount in absorption compartment at previous time-point
-        A2.prev <- df$A2[i-1] #Amount in central compartment at previous time-point
-        df$A1[i] <- A1.prev*exp(-df$KAi[i]*time) + df$AMT[i]*df$Fi[i] #Amount in the absorption compartment at current time
-        df$A2[i] <- A1.prev*df$KAi[i]/(df$KAi[i]-KEi[i])*(exp(-KEi[i]*time)-exp(-df$KAi[i]*time))+A2.prev*exp(-KEi[i]*time) #Amount in the central compartment at current time
-        df$IPRE[i] <- df$A2[i]/df$Vi[i] #Concentration in central compartment at current time
-      }
-      df
-    }
 
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
@@ -171,17 +129,6 @@
         ETA2fit <- log(par[2]) #Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
-
-        # input.bayes.data <- input.data
-        # input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
-        # input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
-        # input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
-        # input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
-        # input.bayes.data$CLi <- POPCL  #Initial value for clearance
-        # input.bayes.data$Vi <- POPV  #Initial value for volume
-        # input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
-        # input.bayes.data$Fi <- POPF  #Initial value for bioavailability
-        # conc.data <- conc.function(input.bayes.data)  #Run the concentration function
 
         ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)
         conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)
