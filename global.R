@@ -12,14 +12,15 @@
   library(dplyr)  #New plyr
   library(rmarkdown)  #Generate report to a Word, pdf or HTML document
   library(mrgsolve) #Metrum differential equation solver for pharmacometrics
-  #Directories on Windows
-    # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
-    # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
-  #Directories on Mac
-  	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
-    pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
+#Directories on Windows
+  # dir <- "//psf/Home/Desktop/PipPrototypeApp3/"	#Directory where application files are saved
+  # pandocdir <- "C:/Program Files/RStudio/bin/pandoc"	#Directory for pancdoc (writing to word document)
+#Directories on Mac
+	dir <- "/Volumes/Prosecutor/PhD/APAP/PrototypeAPAP3/"  #Application's directory
+  pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
   theme_bw2 <- theme_set(theme_bw(base_size = 16))
+
 #------------------------------------------------------------------------------------------
 #Define time sequence
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
@@ -27,7 +28,7 @@
                 seq(from = 16,to = 32,by = 8))
   TIME.tgrid <- c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8))
 #Set the number of individuals that make up the 95% prediction intervals
-  n <- 2000
+  n <- 1000
 #Set the number of individuals for population PK modelling example (simulation)
   nsim <- 100
 #95% prediction interval functions
@@ -37,72 +38,21 @@
   set.seed(123456)
 #One per ID function
   oneperID <- function(x) head(x,1)
-#------------------------------------------------------------------------------------------
-#Population model parameters
-  #THETAs
-    POPCL <- 14.6076 #Clearance, L/h
-    POPV <- 76.1352	#Volume of distribution for central compartment, L
-    POPKA <- 0.66668 #Absorption rate constant, h^-1
-    POPF <- 1	#Bioavailability
-    COVSDAC_F <- -0.179735 #Effect of activated charcoal administration on F
-    COVPROD_KA0 <- 0 #Effect of product category on KA; paracetamol alone
-    COVPROD_KA1 <- 1.41279 #Effect of product category on KA; para+antihistamine
-    COVPROD_KA2 <- -0.488444  #Effect of product category on KA; para+opioid
-    COVPROD_KA3 <- 0.0222383  #Effect of product category on KA; para+other
-    COVPROD_KA4 <- -0.348731  #Effect of product category on KA; para ER
-  #OMEGAs (as SDs)
-    PPVCL <- sqrt(0.035022858) #PPV for CL
-    PPVV <- sqrt(0.0054543827)	#PPV for V
-    PPVKA <- sqrt(0.45608978)	#PPV for KA
-    PPVF <- sqrt(0.52338442)	#PPV for F
-  #SIGMA (as SDs)
-    ERRPRO <- 0.318253  #Proportional residual error
-#------------------------------------------------------------------------------------------
-#Calculate concentrations at each time-point for the individual
-  #Function for calculating concentrations in a loop
-  #This function is used during Bayesian estimation
-    conc.function <- function(df){
-      for(i in 2:nrow(df)) {
-        #Specify individual parameter values
-        df$CLi[i] <- POPCL*((df$WT[i]/70)^0.75)*exp(df$ETA1[i])
-        df$Vi[i] <- POPV*(df$WT[i]/70)*exp(df$ETA2[i])  #Individual value for V
-        if (df$PROD[i] == 0) df$KAi[i] <- POPKA*(1+COVPROD_KA0)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 1) df$KAi[i] <- POPKA*(1+COVPROD_KA1)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 2) df$KAi[i] <- POPKA*(1+COVPROD_KA2)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 3) df$KAi[i] <- POPKA*(1+COVPROD_KA3)*exp(df$ETA3[i]) #Individual value for KA
-        if (df$PROD[i] == 4) df$KAi[i] <- POPKA*(1+COVPROD_KA4)*exp(df$ETA3[i]) #Individual value for KA
-        df$Fi[i] <- POPF*(1+df$SDAC[i]*COVSDAC_F)*exp(df$ETA4[i]) #Individual value for F
-        #Specify initial conditions
-        df$A1[df$TIME == 0] <- df$AMT[df$TIME == 0]*df$Fi[i]  #Drug amount in the absorption compartment at time zero
-        df$A2[df$TIME == 0] <- 0 #Drug amount in the central compartment at time zero
-        df$IPRE[df$TIME == 0] <- 0  #Drug concentration in the central compartment at time zero
-
-        KEi <- df$CLi/df$Vi #Elimination rate-constant from central compartment
-        KEi[i] <- df$CLi[i]/df$Vi[i]  #Elimination rate-constant from central compartment
-        time <- df$TIME[i]-df$TIME[i-1] #Difference in time between current and previous time-point
-        A1.prev <- df$A1[i-1] #Amount in absorption compartment at previous time-point
-        A2.prev <- df$A2[i-1] #Amount in central compartment at previous time-point
-        df$A1[i] <- A1.prev*exp(-df$KAi[i]*time) + df$AMT[i]*df$Fi[i] #Amount in the absorption compartment at current time
-        df$A2[i] <- A1.prev*df$KAi[i]/(df$KAi[i]-KEi[i])*(exp(-KEi[i]*time)-exp(-df$KAi[i]*time))+A2.prev*exp(-KEi[i]*time) #Amount in the central compartment at current time
-        df$IPRE[i] <- df$A2[i]/df$Vi[i] #Concentration in central compartment at current time
-      }
-      df
-    }
 
 #------------------------------------------------------------------------------------------
 #Calculate concentrations at each time-point for the individual
   #Using mrgsolve - analytical solutions
   #This compiled model is used for simulating the individual's estimated profile and 95% prediction intervals
     code <- '
-    $PARAM    POPCL = 14.6076,
+    $PARAM    POPCL = 14.6076,  //Population parameter values - fixed effects
               POPV = 76.1352,
               POPKA = 0.66668,
               POPF = 1,
-              ERR_CL = 0,
+              ERR_CL = 0, //Place holders for Bayesian estimated ETAs
               ERR_V = 0,
               ERR_KA = 0,
               ERR_F = 0,
-              WT_CL = 0.75,
+              WT_CL = 0.75, //Covariate effects
               WT_V = 1,
               SDAC_F = -0.179735,
               PROD0_KA = 0,
@@ -110,7 +60,7 @@
               PROD2_KA = -0.488444,
               PROD3_KA = 0.0222383,
               PROD4_KA = -0.348731,
-              WT = 70,
+              WT = 70,  //Place holders for patient covariate values
               SDAC = 0,
               PROD = 0
 
@@ -144,63 +94,70 @@
 
     $TABLE    table(IPRE) = CENT/V;
               table(DV) = table(IPRE)*(1 + ERR_PRO);
-
-    $CAPTURE  CL V KA F
     '
     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
 
-#------------------------------------------------------------------------------------------
-#Simulate a population according to the PK model described
-#Randomly sample individuals at different times for various amounts
-#Simulate different amounts ingested, different body weights and different products
-#Just make SDAC == 0
-  ID <- 1:nsim  #ID sequence
-  WT <- rlnorm(nsim,meanlog = log(70),sdlog = 0.3)  #Weight (kg)
-  PROD <- rbinom(nsim,size = 5,prob = 0.2) #Product categories
-  AMT <- rlnorm(nsim,meanlog = log(20),sdlog = 0.3)  #Estimated amount ingested (g)
-  sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
-  #Collate into a data frame
-  input.patient.data <- data.frame(ID,  #ID sequence
-                                  TIME = 0, #Placeholder for the time column
-                                  nPAC = sample.lengths,
-                                  AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
-                                  PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
-                                  WT,  #Patient's weight (kg)
-                                  SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
-                                  PROD,  #Product category ingested
-                                  ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
-                                  ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
-                                  ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
-                                  ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
-                                  CLi = POPCL,
-                                  Vi = POPV,
-                                  KAi = POPKA,
-                                  Fi = POPF)
-  input.time.data <- lapply(input.patient.data,rep.int,times = length(TIME.base))
-  input.time.data <- as.data.frame(input.time.data)
-  input.time.data <- input.time.data[with(input.time.data, order(input.time.data$ID)),]
-  input.time.data$TIME <- TIME.base
-  input.time.data$AMT[input.time.data$TIME != 0] <- 0
-#Make a data frame of time-points - randomly generated for each individual
-  sample.times.function <- function(input.data) {
-    nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
-    sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],nPAC) #Sample nPAC time-points from TIME.base
-    input.data$SAMPLE <- 0
-    input.data$SAMPLE[input.data$TIME %in% sample.times] <- 1
-    input.data
-  }
-  input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
-  conc.sim.data <- conc.function(input.sim.data)
-  conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
+# #------------------------------------------------------------------------------------------
+# #Simulate a population according to the PK model described
+# #Randomly sample individuals at different times for various amounts
+# #Simulate different amounts ingested, different body weights and different products
+# #Just make SDAC == 0
+#   ID <- 1:nsim  #ID sequence
+#   WT <- rlnorm(nsim,meanlog = log(70),sdlog = 0.3)  #Weight (kg)
+#   PROD <- rbinom(nsim,size = 5,prob = 0.2) #Product categories
+#   AMT <- rlnorm(nsim,meanlog = log(20),sdlog = 0.3)  #Estimated amount ingested (g)
+#   sample.lengths <- rbinom(nsim,size = 5,prob = 0.2)+2  #At least 2 samples per individual
+#   #Collate into a data frame
+#   input.patient.data <- data.frame(ID,  #ID sequence
+#                                   TIME = 0, #Placeholder for the time column
+#                                   nPAC = sample.lengths,
+#                                   AMT = AMT*1000,  #AMT input at time = 0, then no further doses at subsequent times
+#                                   PAC = NA,  #Patient's plasma acetaminophen concentrations (mg/L)
+#                                   WT,  #Patient's weight (kg)
+#                                   SDAC = 0,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+#                                   PROD,  #Product category ingested
+#                                   ETA1 = rnorm(nsim,mean = 0,sd = PPVCL),
+#                                   ETA2 = rnorm(nsim,mean = 0,sd = PPVV),
+#                                   ETA3 = rnorm(nsim,mean = 0,sd = PPVKA),
+#                                   ETA4 = rnorm(nsim,mean = 0,sd = PPVF),
+#                                   CLi = POPCL,
+#                                   Vi = POPV,
+#                                   KAi = POPKA,
+#                                   Fi = POPF)
+#   input.time.data <- lapply(input.patient.data,rep.int,times = length(TIME.base))
+#   input.time.data <- as.data.frame(input.time.data)
+#   input.time.data <- input.time.data[with(input.time.data, order(input.time.data$ID)),]
+#   input.time.data$TIME <- TIME.base
+#   input.time.data$AMT[input.time.data$TIME != 0] <- 0
+# #Make a data frame of time-points - randomly generated for each individual
+#   sample.times.function <- function(input.data) {
+#     nPAC <- input.data$nPAC[1]  #Number of PAC to sample for the individual
+#     sample.times <- sample(TIME.base[TIME.base >= 1 & TIME.base <= 20],nPAC) #Sample nPAC time-points from TIME.base
+#     input.data$SAMPLE <- 0
+#     input.data$SAMPLE[input.data$TIME %in% sample.times] <- 1
+#     input.data
+#   }
+#   input.sim.data <- ddply(input.time.data, .(ID), sample.times.function)
+#   conc.sim.data <- conc.function(input.sim.data)
+#   conc.sim.data$DV <- conc.sim.data$IPRE*exp(rnorm(length(conc.sim.data$IPRE),mean = 0,sd = ERRPRO))
 #------------------------------------------------------------------------------------------
 #Fit individual parameters given the observed concentrations, estimated doses and covariate values
   bayesian.function <- function(input.data) {
     #Initial parameter estimates
       initial.par <- c(exp(0),exp(0),exp(0),exp(0)) #Population values
       par <- initial.par
-    #Observation - posterior
+    #Observation - for the posterior
       Yobs <- input.data$PAC  #Most of this will be NA except for the samples
+    #Update "mod" (model code for mrgsolve) parameters for Bayesian estimation
+      covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
+      omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
+      update.parameters <- mod %>% param(covariate.list) %>% omat(dmat(omega.list))
+    #Input dataset for mrgsolve
+  		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
+    #Time sequence for mrgsolve
+      time.bayes <- c(input.data$TIME)
+
     #Function for estimating individual parameters by minimising the Bayesian objective function value
       bayesian.ofv <- function(par) {
         ETA1fit <- log(par[1])  #Bayesian estimated ETA for clearance
@@ -208,16 +165,10 @@
         ETA3fit <- log(par[3])  #Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
 
-        input.bayes.data <- input.data
-        input.bayes.data$ETA1 <- ETA1fit  #Bayesian estimated ETA for clearance
-        input.bayes.data$ETA2 <- ETA2fit #Bayesian estimated ETA for volume
-        input.bayes.data$ETA3 <- ETA3fit  #Bayesian estimated ETA for absorption rate constant
-        input.bayes.data$ETA4 <- ETA4fit  #Bayesian estimated ETA for bioavailability
-        input.bayes.data$CLi <- POPCL  #Initial value for clearance
-        input.bayes.data$Vi <- POPV  #Initial value for volume
-        input.bayes.data$KAi <- POPKA  #Initial value for absorption rate constant
-        input.bayes.data$Fi <- POPF  #Initial value for bioavailability
-        conc.data <- conc.function(input.bayes.data)  #Run the concentration function
+        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)  #List of ETA values that will be optimised - these will updated and connected to ERR_X terms in the mrgsolve model code
+        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)  #Simulate concentration-time profile with nth iteration of ETA values
+        conc.data <- as.data.frame(conc.data) #Convert to a data frame
+        conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
 
         Yhat <- conc.data$IPRE  #Make a Yhat vector based on IPRE in conc.data
         #If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
@@ -225,10 +176,12 @@
         #Posterior component (from the data)
         #Log densities of residuals
         #Residual error model, Y = IPRE*(1+ERR), Y = IPRE + IPRE*ERR
+        ERRPRO <- sqrt(as.matrix(smat(mod)))  #Pull out SIGMA from "mod" - original model code
         loglikpost <- dnorm(na.omit(Yobs),mean = na.omit(Yhat),sd = na.omit(Yhat)*ERRPRO,log = T)
         #Prior component (from the model)
-        ETA <- c(ETA1fit,ETA2fit,ETA3fit,ETA4fit)
-        ETABSV <- c(PPVCL,PPVV,PPVKA,PPVF)
+        ETA <- c(ETA1fit,ETA2fit,ETA3fit,ETA4fit) #List of Bayesian estimated ETAs
+        ETABSV <- as.matrix(omat(mod)) #PPV for model parameters in "mod" - original model code
+        ETABSV <- sqrt(c(ETABSV[1,1],ETABSV[2,2],ETABSV[3,3],ETABSV[4,4]))  #Pull out the OMEGAs and convert to SDs
         loglikprior <- dnorm(ETA,mean = 0,sd = ETABSV,log = T)
         #Calculate the combined likelihood
         OFVBayes <- -1*sum(loglikpost,loglikprior)
@@ -237,6 +190,7 @@
     #Optimise the ETA parameters to minimise the OFVBayes
       resultfit <- optim(par,bayesian.ofv,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
     #Put results in a data frame
+      #Split up the elements of the Hessian matrix to calculate standard errors for parameter estimates later on
       resultfit.data <- data.frame(ETA1 = log(resultfit$par[1]),
                                    ETA2 = log(resultfit$par[2]),
                                    ETA3 = log(resultfit$par[3]),
@@ -259,6 +213,7 @@
                                    HESS44 = resultfit$hessian[4,4])
       resultfit.data
   }
+
 #------------------------------------------------------------------------------------------
 #Functions for applying various decision rules to Bayes estimated concentration profiles
   TIME <- 4:24  #Times that the Rumack-Matthew nomogram can only be applied to

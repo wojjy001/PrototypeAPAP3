@@ -30,24 +30,26 @@ shinyServer(function(input,output,session) {
 		PAC[TIME == TIME2] <- PAC2  #Input with PAC2 when TIME = TIME2
 		#Collate into a data frame
 		input.data <- data.frame(TIME,  #Time sequence
-					AMT = c(AMT,rep(0,times = length(TIME)-1)),  #AMT input at time = 0, then no further doses at subsequent times
-					PAC,  #Patient's plasma acetaminophen concentrations (mg/L)
-					WT,  #Patient's weight (kg)
-					SDAC,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
-					PROD,  #Product category ingested
-					CLi = POPCL,  #Initial CL column
-					Vi = POPV,  #Initial V column
-					KAi = POPKA,  #Initial KA column
-					Fi = POPF  #Initial F column
+														AMT = c(AMT,rep(0,times = length(TIME)-1)),  #AMT input at time = 0, then no further doses at subsequent times
+														PAC,  #Patient's plasma acetaminophen concentrations (mg/L)
+														WT,  #Patient's weight (kg)
+														SDAC,  #Single-dose activated charcoal status (0 = No, 1 = Yes)
+														PROD  #Product category ingested
 		)
 		input.data
 	})  #Brackets closing "Rinput.data"
 
 	#Estimate individual parameter values based on the information in Rinput.data
 	Rbayes.data <- reactive({
-		input.data <- Rinput.data()  #Read in the reactive "input.data"
-		input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
-		bayes.data <- bayesian.function(input.data)
+		withProgress(
+			message = "Estimating individual parameters...",
+			value = 0,
+			{
+			input.data <- Rinput.data()  #Read in the reactive "input.data"
+			input.data <- input.data[input.data$TIME == 0 | is.na(input.data$PAC) == F,]	#Only use the time-points that are actually needed - i.e., when the amount was ingested and when samples were collected
+			bayes.data <- bayesian.function(input.data)
+			}	#Brackets closing expression for "withProgress"
+		)	#Brackets closing "withProgress"
 	})  #Brackets closing "Rbayes.data"
 
 	#Use individual parameter estimates in Rbayes.data to simulate a concentration-time profile for the individual
