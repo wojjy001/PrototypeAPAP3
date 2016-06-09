@@ -92,6 +92,8 @@
 
     $TABLE    table(IPRE) = CENT/V;
               table(DV) = table(IPRE)*(1 + ERR_PRO);
+
+    $CAPTURE  CL V KA F
     '
     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
