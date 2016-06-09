@@ -155,7 +155,7 @@
         ETA4fit <- log(par[4])  #Bayesian estimated ETA for bioavailability
 
         ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)  #List of ETA values that will be optimised - these will updated and connected to ERR_X terms in the mrgsolve model code
-        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data) %>% mrgsim(start = 0,end = 0,add = time.bayes)  #Simulate concentration-time profile with nth iteration of ETA values
+        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data,evid = 1,cmt = 1) %>% mrgsim(start = 0,end = 0,add = time.bayes)  #Simulate concentration-time profile with nth iteration of ETA values
         conc.data <- as.data.frame(conc.data) #Convert to a data frame
         conc.data <- conc.data[-1,] #Remove the first row (don't need 2 x time = 0)
 

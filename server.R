@@ -67,7 +67,7 @@ shinyServer(function(input,output,session) {
 		#Input dataset for differential equation solver
 		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
 		#Run differential equation solver
-		conc.data <- update.parameters %>% data_set(input.conc.data) %>% mrgsim(tgrid = TIME.tgrid)
+		conc.data <- update.parameters %>% data_set(input.conc.data,evid = 1,cmt = 1) %>% mrgsim(tgrid = TIME.tgrid)
 		conc.data <- as.data.frame(conc.data)
 	})  #Brackets closing "Rconc.data"
 
@@ -97,7 +97,7 @@ shinyServer(function(input,output,session) {
 		#Input dataset for differential equation solver
 		input.ci.data <- expand.ev(ID = 1:n,amt = input.data$AMT[1])
 		#Run differential equation solver
-		ci.data <- update.parameters %>% data_set(input.ci.data) %>% mrgsim(tgrid = c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8)))
+		ci.data <- update.parameters %>% data_set(input.ci.data,evid = 1,cmt = 1) %>% mrgsim(tgrid = c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8)))
 		ci.data <- as.data.frame(ci.data)
 	})
 
