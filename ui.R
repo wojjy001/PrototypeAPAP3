@@ -44,13 +44,17 @@ body <-
         h2("Jessica Wojciechowski"),
         fixedRow(
           column(6,
-            h3(strong("University of South Australia supervisors:")," Richard Upton, David Foster, Michael Wiese"),
+            h3(strong("University of South Australia supervisors:")," Richard Upton, David Foster, Michael Wiese")
+          ),  #Brackets closing "column"
+          column(6,
+            img(src = "unisa_logo.png",width = 225,height = 75)
+          ) #Brackets closing "column"
+        ),  #Brackets closing "fixedRow"
+        fixedRow(
+          column(6,
             h3(strong("University of Maryland, Baltimore co-authors:")," Julie Desrochers, Wendy Klein-Schwartz, Joga Gobburu, Mathangi Gopalakrishnan")
           ),  #Brackets closing "column"
           column(6,
-            img(src = "unisa_logo.png",width = 200,height = 75),  #University of South Australia logo
-            br(),
-            br(),
             img(src = "umb_ctm_logo.png",width = 300,height = 100) #University of Maryland, Baltimore logo
           ) #Brackets closing "column"
         )  #Brackets closing "fixedRow"
@@ -128,10 +132,7 @@ body <-
                   h4("A single observation may fail to capture prolonged absorption")
                 ) #Brackets closing "conditionalPanel"
               ), #Brackets closing "fixedRow"
-              fixedRow(
-                plotOutput("DEMOplotOutput1",width = 600),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
-                align = "center"
-              ),  #Brackets closing "fixedRow"
+              plotOutput("DEMOplotOutput1"),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
               checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
               h4(strong(textOutput("DEMOtextOutput1"))),
               width = 12,
