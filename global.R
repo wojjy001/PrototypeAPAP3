@@ -20,7 +20,7 @@
   pandocdir <- "/Applications/RStudio.app/Contents/MacOS/pandoc"  #Directory for pancdoc (writing to word document)
 #Define a custom ggplot2 theme
   theme_bw2 <- theme_set(theme_bw(base_size = 16))
-  
+
 #------------------------------------------------------------------------------------------
 #Define time sequence
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
@@ -42,7 +42,7 @@
   #Using mrgsolve - analytical solutions
   #This compiled model is used for simulating the individual's estimated profile and 95% prediction intervals
     code <- '
-    $PARAM    POPCL = 14.6076,
+    $PARAM    POPCL = 14.6076,  //Population parameter values - fixed effects
               POPV = 76.1352,
               POPKA = 0.66668,
               POPF = 1,
@@ -50,7 +50,7 @@
               ERR_V = 0,
               ERR_KA = 0,
               ERR_F = 0,
-              WT_CL = 0.75,
+              WT_CL = 0.75, //Covariate effects
               WT_V = 1,
               SDAC_F = -0.179735,
               PROD0_KA = 0,
@@ -58,7 +58,7 @@
               PROD2_KA = -0.488444,
               PROD3_KA = 0.0222383,
               PROD4_KA = -0.348731,
-              WT = 70,
+              WT = 70,  //Place holders for patient covariate values
               SDAC = 0,
               PROD = 0
 
@@ -92,8 +92,6 @@
 
     $TABLE    table(IPRE) = CENT/V;
               table(DV) = table(IPRE)*(1 + ERR_PRO);
-
-    $CAPTURE  CL V KA F
     '
     mod <- mcode("popAPAP",code)  #Compile the model code on application initiation
     #There is opportunity to simply update model parameters after the model code has been compiled
@@ -170,6 +168,7 @@
                                    HESS44 = resultfit$hessian[4,4])
       resultfit.data
   }
+
 #------------------------------------------------------------------------------------------
 #Functions for applying various decision rules to Bayes estimated concentration profiles
   TIME <- 4:24  #Times that the Rumack-Matthew nomogram can only be applied to
