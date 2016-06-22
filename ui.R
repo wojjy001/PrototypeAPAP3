@@ -116,7 +116,7 @@ body <-
             box(
               fixedRow(
                 column(4,
-                  selectInput("DEMO_TYPE","Example:",choices = list("Single Observation" = 1,"Second Observation" = 2),selected = 1)
+                  selectInput("DEMO_TYPE","Example:",choices = list("Measure Single Observation" = 1,"Measure Second Observation" = 2),selected = 1)
                 ),  #Brackets closing "column"
                 conditionalPanel(condition = "input.DEMO_TYPE == 1",
                   column(4,
