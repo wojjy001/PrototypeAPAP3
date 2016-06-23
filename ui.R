@@ -94,29 +94,19 @@ body <-
             h2(strong("Rumack-Matthew Nomogram")),
             hr(),
             h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
-            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)"),
             h4("Rumack-Matthew nomogram cannot be used prior to 4 hours since acute overdose")
           ),  #Brackets closing column
           column(8,
             box(
               fixedRow(
                 column(4,
-                  selectInput("DEMO_TYPE","Example:",choices = list("Measure Single Observation" = 1,"Measure Second Observation" = 2),selected = 1)
+                  numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
+                  # Demonstration example: t = 6
                 ),  #Brackets closing "column"
-                conditionalPanel(condition = "input.DEMO_TYPE == 1",
-                  column(4,
-                    numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
-                    # Demonstration example: t = 6
-                  ),  #Brackets closing "column"
-                  column(4,
-                    numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
-                    # Demonstration example: conc = 70
-                  ) #Brackets closing "column"
-                ),  #Brackets closing "conditionalPanel"
-                conditionalPanel(condition = "input.DEMO_TYPE == 2",
-                  br(),
-                  h4("A single observation may fail to capture prolonged absorption")
-                ) #Brackets closing "conditionalPanel"
+                column(4,
+                  numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
+                  # Demonstration example: conc = 70
+                ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
               plotOutput("DEMOplotOutput1"),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
               checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),

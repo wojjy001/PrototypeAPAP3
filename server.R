@@ -142,11 +142,6 @@ shinyServer(function(input,output,session) {
 		#Demonstration free input concentrations
 		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 4)
 
-		#Demonstration Opioid-combination concentrations
-		if (input$DEMO_TYPE == 2) {
-			plotobj1 <- plotobj1 + geom_point(aes(x = 12,y = 50),size = 4)
-		}
-
 		#Axes
 		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
 		if (input$DEMO_LOG == FALSE) {
@@ -165,9 +160,6 @@ shinyServer(function(input,output,session) {
 			text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
 		} else {
 			text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
-		}
-		if (input$DEMO_TYPE == 2) {
-			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
 		}
 		text
 	})	#Brackets closing "renderText"
