@@ -206,12 +206,12 @@ shinyServer(function(input,output,session) {
 				if (input$DEMO_LOGS == FALSE) {
 					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500*0.8,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1500*0.6,label = paste0("ka = ",round(POPKA,digits = 2)," /h")),size = 8)
 				}
 				if (input$DEMO_LOGS == TRUE) {
 					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 1000,label = paste0("CL = ",round(POPCL,digits = 2)," L/h")),size = 8)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 300,label = paste0("V = ",round(POPV,digits = 2)," L")),size = 8)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," h^-1")),size = 8)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 24,y = 100,label = paste0("ka = ",round(POPKA,digits = 2)," /h")),size = 8)
 				}
 			}
 		}
@@ -240,14 +240,14 @@ shinyServer(function(input,output,session) {
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV),label = paste0("Estimated amount ingested = ",round(amt*F,digits = 2)," g")),data = label.data)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.8,label = paste0("CL = ",CL," L/h")),data = label.data)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.6,label = paste0("V = ",V," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.4,label = paste0("ka = ",KA," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = max(demo.conc.data.rand$DV)*0.4,label = paste0("ka = ",KA," /h")),data = label.data)
 				}
 
 				if (input$DEMO_LOGS == TRUE) {
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 1000,label = paste0("Estimated amount ingested = ",round(amt*F,digits = 2)," g")),data = label.data)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 300,label = paste0("CL = ",CL," L/h")),data = label.data)
 					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 100,label = paste0("V = ",V," L")),data = label.data)
-					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 30,label = paste0("ka = ",KA," h^-1")),data = label.data)
+					plotobj2 <- plotobj2 + geom_text(aes(x = 20,y = 30,label = paste0("ka = ",KA," /h")),data = label.data)
 				}
 			}
 
