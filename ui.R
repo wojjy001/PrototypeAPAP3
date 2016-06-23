@@ -69,7 +69,6 @@ body <-
             title = strong("How much is a paracetamol overdose?"),
             status = "primary",
             solidHeader = TRUE,
-            collapsible = FALSE,
             width = 12
           ),  #Brackets closing "box"
           box(
@@ -77,8 +76,6 @@ body <-
             title = strong("What are the consequences of paracetamol overdose?"),
             status = "primary",
             solidHeader = TRUE,
-            collapsible = TRUE,
-            collapsed = TRUE,
             width = 12
           ),  #Brackets closing "box"
           box(
@@ -87,8 +84,6 @@ body <-
             title = strong("What is the antidotal treatment?"),
             status = "primary",
             solidHeader = TRUE,
-            collapsible = TRUE,
-            collapsed = TRUE,
             width = 12
           ) #Brackets closing "box"
         ) #Brackets closing "fixedRow"
@@ -99,7 +94,8 @@ body <-
             h2(strong("Rumack-Matthew Nomogram")),
             hr(),
             h4("Decisions to administer N-acetylcysteine (NAC) are based upon a single plasma paracetamol concentration measured at least 4 hours since acute overdose against the Rumack-Matthew nomogram"),
-            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)")
+            h4("Case reports of nomogram failure have been reported particularly in those patients who ingest paracetamol combination products (i.e., with an opioid or antihistamine)"),
+            h4("Rumack-Matthew nomogram cannot be used prior to 4 hours since acute overdose")
           ),  #Brackets closing column
           column(8,
             box(
@@ -141,31 +137,26 @@ body <-
                 column(12,
                   h4("- Population average concentration time-course"),
                   h4("- Parameterised as clearance (CL), volume of distribution (V), and absorption rate-constant (KA)"),
-                  h4("- Quantify between-subject variability"),
+                  h4("- Quantify between-subject variability (%CV; coefficient of variation)"),
                   h4("- Quantify covariate effects")
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
               title = strong("Population Pharmacokinetic Modelling"),
               width = 12,
               status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = FALSE
+              solidHeader = TRUE
             ),  #Brackets closing "box"
             box(
               fixedRow(
                 column(12,
                   h4("- Predict a specific individual's most likely concentration-time profile given sampled concentrations, covariate profile and prior population pharmacokinetic model"),
-                  h4("- Bayesian forecasting"),
                   h4(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
-              title = strong("Individual Predictions"),
+              title = strong("Bayesian forecasting"),
               width = 12,
               status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = TRUE
+              solidHeader = TRUE
             ) #Brackets closing "box"
           ),  #Brackets closing "column"
           column(8,
