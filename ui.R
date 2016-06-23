@@ -133,7 +133,8 @@ body <-
               title = strong("Population Pharmacokinetic Modelling"),
               width = 12,
               status = "primary",
-              solidHeader = TRUE
+              solidHeader = TRUE,
+              collapsible = TRUE
             ),  #Brackets closing "box"
             box(
               fixedRow(
