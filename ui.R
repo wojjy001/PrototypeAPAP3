@@ -148,45 +148,28 @@ body <-
             box(
               fixedRow(
                 column(12,
-                  h4("- Fixed effects parameters describe the population average and covariate influences"),
-                  h4("- Random effect parameters describe how and how much individuals vary from the population average"),
-                  h4("- Parameters estimated using maximum likelihood estimation")
+                  h4("- Population average concentration time-course"),
+                  h4("- Parameterised as clearance (CL), volume of distribution (V), and absorption rate-constant (KA)"),
+                  h4("- Quantify between-subject variability"),
+                  h4("- Quantify covariate effects")
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
-              title = strong("Non-linear mixed-effect modelling"),
+              title = strong("Population Pharmacokinetic Modelling"),
               width = 12,
               status = "primary",
               solidHeader = TRUE,
               collapsible = TRUE,
-              collapsed = TRUE
+              collapsed = FALSE
             ),  #Brackets closing "box"
             box(
               fixedRow(
                 column(12,
-                  h4("- Differences in amounts ingested"),
-                  h4("- Differences in products ingested"),
-                  h4("- Differences in body weights"),
-                  h4("- Administration of single-dose activated charcoal"),
-                  h4("- Unexplained differences between individuals"),
-                  h4("- Unexplained differences within an individual")
-                ) #Brackets closing "column"
-              ),  #Brackets closing "fixedRow"
-              title = strong("Previous model provides useful (quantitative) information regarding the pharmacokinetics of paracetamol following an acute overdose in a population"),
-              width = 12,
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = TRUE
-            ),  #Brackets closing "box"
-            box(
-              fixedRow(
-                column(12,
-                  h4("- Can we predict the concentration-time profile of a patient who was not in the dataset used to develop the model?"),
-                  h4("- What is the most likely concentration-time profile for that new patient given the prior population model and a measured concentration from that patient?"),
+                  h4("- Predict a specific individual's most likely concentration-time profile given sampled concentrations, covariate profile and prior population pharmacokinetic model"),
+                  h4("- Bayesian forecasting"),
                   h4(strong("- Sample paracetamol concentrations before 4 hours, forecast the most likely profile and use forecasted concentrations against the Rumack-Matthew nomogram to make antidotal decisions"))
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
-              title = strong("Bayesian forecasting"),
+              title = strong("Individual Predictions"),
               width = 12,
               status = "primary",
               solidHeader = TRUE,
@@ -206,7 +189,7 @@ body <-
                     checkboxInput("POP_PARM","Show population parameter values",value = FALSE)
                   ), #Brackets closing "column"
                   column(4,
-                    checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)                    
+                    checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
                   )  #Brackets closing "column"
                 ) #Brackets closing "fixedRow"
               ),  #Brackets closing "conditionalPanel"
