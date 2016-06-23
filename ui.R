@@ -63,45 +63,43 @@ body <-
         h2(strong("Paracetamol Overdose")),
         hr(),
         fixedRow(
-          column(6,
-            box(
-              h4("- Recommended dose: 1 g (15 mg/kg) up to four times a day (maximum 4 g in 24 hours)"),
-              h4("- Greater than 10 g or 200 mg/kg"),
-              title = strong("How much is a paracetamol overdose?"),
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = FALSE,
-              width = 12
-            ),  #Brackets closing "box"
-            box(
-              h4("- Accounts for approximately 80,000 emergency department visits annually in the United States"),
-              title = strong("How many people overdose?"),
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = TRUE,
-              width = 12
-            ), #Brackets closing "box"
-            box(
-              h4("- Primary concern is hepatotoxicity"),
-              title = strong("What are the consequences of paracetamol overdose?"),
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = TRUE,
-              width = 12
-            ),  #Brackets closing "box"
-            box(
-              h4("- Single-dose activated charcoal (SDAC)"),
-              h4("- N-acetylcysteine (NAC)"),
-              title = strong("What is the antidotal treatment?"),
-              status = "primary",
-              solidHeader = TRUE,
-              collapsible = TRUE,
-              collapsed = TRUE,
-              width = 12
-            ) #Brackets closing "box"
-          ) #Brackets closing "column"
+          box(
+            h4("- Recommended dose: 1 g (15 mg/kg) every 4 to 6 hours up to four times a day (maximum 4 g in 24 hours)"),
+            h4("- Overdose: Greater than 10 g or 200 mg/kg"),
+            title = strong("How much is a paracetamol overdose?"),
+            status = "primary",
+            solidHeader = TRUE,
+            collapsible = FALSE,
+            width = 12
+          ),  #Brackets closing "box"
+          box(
+            h4("- Accounts for approximately 80,000 emergency department visits annually in the United States"),
+            title = strong("How many people overdose?"),
+            status = "primary",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12
+          ), #Brackets closing "box"
+          box(
+            h4("- Primary concern is hepatotoxicity"),
+            title = strong("What are the consequences of paracetamol overdose?"),
+            status = "primary",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12
+          ),  #Brackets closing "box"
+          box(
+            h4("- Single-dose activated charcoal (SDAC)"),
+            h4("- N-acetylcysteine (NAC)"),
+            title = strong("What is the antidotal treatment?"),
+            status = "primary",
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = 12
+          ) #Brackets closing "box"
         ) #Brackets closing "fixedRow"
       ),  #Brackets closing "tabItem" for "para-overdose"
       tabItem(tabName = "rm-nomo",
