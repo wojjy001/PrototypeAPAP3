@@ -203,10 +203,10 @@ body <-
                     checkboxInput("POP_MED","Plot population median line",value = FALSE)
                   ),  #Brackets closing "column"
                   column(4,
-                    checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)
+                    checkboxInput("POP_PARM","Show population parameter values",value = FALSE)
                   ), #Brackets closing "column"
                   column(4,
-                    checkboxInput("POP_PARM","Show population parameter values",value = FALSE)
+                    checkboxInput("POP_CI","Plot 95% prediction intervals",value = FALSE)                    
                   )  #Brackets closing "column"
                 ) #Brackets closing "fixedRow"
               ),  #Brackets closing "conditionalPanel"
