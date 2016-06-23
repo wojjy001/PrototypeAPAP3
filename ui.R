@@ -132,7 +132,7 @@ body <-
                 ) #Brackets closing "conditionalPanel"
               ), #Brackets closing "fixedRow"
               plotOutput("DEMOplotOutput1"),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
-              checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
+              checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = TRUE),
               h4(strong(textOutput("DEMOtextOutput1"))),
               width = 12,
               status = "primary"
