@@ -73,15 +73,6 @@ body <-
             width = 12
           ),  #Brackets closing "box"
           box(
-            h4("- Accounts for approximately 80,000 emergency department visits annually in the United States"),
-            title = strong("How many people overdose?"),
-            status = "primary",
-            solidHeader = TRUE,
-            collapsible = TRUE,
-            collapsed = TRUE,
-            width = 12
-          ), #Brackets closing "box"
-          box(
             h4("- Primary concern is hepatotoxicity"),
             title = strong("What are the consequences of paracetamol overdose?"),
             status = "primary",
