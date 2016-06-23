@@ -99,14 +99,13 @@ body <-
           column(8,
             box(
               fixedRow(
-                column(4,
-                  numericInput("DEMO_TIME","Time since ingestion (hours):",min = 0,value = 4)  #Numeric input for demonstration time
-                  # Demonstration example: t = 6
+                column(4, offset = 2,
+                  numericInput("DEMO_TIME","Time since ingestion (hours)",min = 0,value = 4)  #Numeric input for demonstration time
                 ),  #Brackets closing "column"
                 column(4,
-                  numericInput("DEMO_PAC","Concentration (mg/L):",min = 0,value = 150)  #Numeric input for demonstration concentration
-                  # Demonstration example: conc = 70
-                ) #Brackets closing "column"
+                  numericInput("DEMO_PAC","Concentration (mg/L)",min = 0,value = 150)  #Numeric input for demonstration concentration
+                ), #Brackets closing "column"
+                align = "center"
               ), #Brackets closing "fixedRow"
               plotOutput("DEMOplotOutput1"),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
               checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
@@ -127,8 +126,8 @@ body <-
                 column(12,
                   h4("- Population average concentration time-course"),
                   h4("- Parameterised as clearance (CL), volume of distribution (V), and absorption rate-constant (KA)"),
-                  h4("- Quantify between-subject variability (%CV; coefficient of variation)"),
-                  h4("- Quantify covariate effects")
+                  h4("- Quantify between-subject variability (%CV; coefficient of variation) in parameters"),
+                  h4("- Quantify covariate effects on parameters")
                 ) #Brackets closing "column"
               ), #Brackets closing "fixedRow"
               title = strong("Population Pharmacokinetic Modelling"),
@@ -240,7 +239,7 @@ body <-
   							numericInput("TIME2","2: Time since ingestion (hours)",min = 0,value = 8)  #Numeric input for time of second plasma acetaminophen concentration
             ), #Brackets closing "column"
             column(6,
-  							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 70)	#Numeric input for second plasma acetaminophen concentration
+  							numericInput("PAC2","2: Concentration (mg/L)",min = 0,value = 150)	#Numeric input for second plasma acetaminophen concentration
             ) #Brackets closing "column"
           ) #Brackets closing "fixedRow"
 				),  #Brackets closing "conditionalPanel"
