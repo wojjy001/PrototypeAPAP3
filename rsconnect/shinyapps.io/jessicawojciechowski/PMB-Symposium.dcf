@@ -2,9 +2,9 @@ name: PMB-Symposium
 account: jessicawojciechowski
 server: shinyapps.io
 appId: 106380
-bundleId: 487261
+bundleId: 487272
 url: https://jessicawojciechowski.shinyapps.io/PMB-Symposium/
-when: 1466677712.77016
+when: 1466679573.19924
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: runApp.R
