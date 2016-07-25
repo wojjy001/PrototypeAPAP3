@@ -17,7 +17,11 @@ sidebar <-
       menuItem("Patient Information",tabName = "patient",icon = icon("child")),
       menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
 		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart")),
-      menuItem("About",tabName = "about",icon = icon("question-circle"))
+      menuItem("About",tabName = "about",icon = icon("question-circle"),
+        menuSubItem("Background and Objective",tabName = "objective",icon = icon("angle-double-right")),
+        menuSubItem("Population Model",tabName = "model",icon = icon("angle-double-right")),
+        menuSubItem("Acknowledgements",tabName = "acknowledgements",icon = icon("angle-double-right"))
+      )
 		)	# Brackets closing "sidebarMenu"
 	) # Brackets closing "dashboardSidebar"
 # Application's body
@@ -27,7 +31,7 @@ body <-
 		tags$head(
 			tags$link(rel = "stylesheet",type = "text/css",href = "custom.css")
 		),
-		tabItems(
+    tabItems(
 			tabItem(tabName = "patient",
 				h4("Patient Information:"),	# Heading for Patient Information section
         fixedRow(
@@ -138,9 +142,15 @@ body <-
 					status = "primary"
 				)	# Brackets closing "box"
 			), # Brackets closing "tabItem" for "results"
-			tabItem(tabName = "about",
-        p("Text")
-      ) # Brackets closing "tabItem" for "about"
+			tabItem(tabName = "objective",
+        includeMarkdown("objective.Rmd")
+      ), # Brackets closing "tabItem" for "objective"
+      tabItem(tabName = "model",
+        pre(includeText("model.R"))
+      ), # Brackets closing "tabItem" for "model"
+      tabItem(tabName = "acknowledgements",
+        includeMarkdown("acknowledgements.Rmd")
+      ) # Brackets closing "tabItem" for "acknowledgements"
 		)  # Brackets closing "tabItems"
 	) # Brackets closing "dashboardBody"
 # ------------------------------------------------------------------------------

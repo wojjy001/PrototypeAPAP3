@@ -1,0 +1,40 @@
+---
+output: html_document
+---
+
+## Acetaminophen Overdose
+
+**Background:**
+
+* In clinical practice, decisions to administer the antidote, N-acetylcysteine (NAC), following acute acetaminophen overdose relies on a single plasma acetaminophen concentration (PAC) obtained at least 4 hours post ingestion against the Rumack-Matthew nomogram.
+* Case reports of nomogram failure have been reported particularly in those patients who ingest acetaminophen combination products (i.e., with an opioid or antihistamine) or extended-release formulations.
+* Previous unpublished work has demonstrated that population pharmacokinetic (PK) modelling coupled with Bayesian estimation can forecast an individual’s PK profile based on 2 PAC observations, and is more sensitive in identifying those patients who really need the antidote when compared to standard clinical practice.
+
+**Objective:** The objective of this work was to build the previously developed PK model and Bayesian statistical framework into a practical, web-based application that can be used by physicians.
+
+*****
+
+## Key Application Features
+
+* The web-based application was developed using the R data analysis and statistical language and the Shiny package for R (as well as several other add-on packages for R providing additional statistical and graphical capabilities).
+
+* The interface features “widgets” that allow users to enter specific patient details (name, date of birth, weight, gender), information regarding the amount and type of acetaminophen product ingested, and plasma concentrations sampled (and their corresponding times since ingestion).
+* Widget input is used to guide estimation of individual PK parameters that describe the patient’s concentration-time profile from which NAC administration decisions can be based upon.
+* The application provides graphical and written summaries of the patient’s acetaminophen concentration-time profile and NAC recommendations, respectively, which can be later referred to in a downloadable report.
+
+*****
+
+## Acetaminophen Population Pharmacokinetic Model
+
+* This application describes acetaminophen pharmacokinetics using a 1-compartment population model with first-order absorption parameterised in terms of clearance (CL; L/h/70 kg), volume of the central compartment (V; L/70 kg), first-order absorption rate constant (KA; h^-1 ), and relative bioavailability (F)
+* All pharmacokinetic parameters included inter-individual variability to describe differences in acetaminophen pharmacokinetic profiles between individuals (and covariance between all random effects)
+    + Including random effects on F - to account for uncertainity in the amount of acetaminophen ingested by the individual
+* Differences between individual model predictions and the individual's observed acetaminophen concentrations were described by a proportional residual error mode
+* Covariate effects included:
+    + The effect of the administration of SDAC on F
+    + The effect of acetaminophen product category on KA
+    + Pharmokinetic parameters, CL and V, were allometrically scaled to a 70 kg individual
+
+Full model equations and parameter values are outlined in the *Population Model* tab (written in mrgsolve code).
+
+

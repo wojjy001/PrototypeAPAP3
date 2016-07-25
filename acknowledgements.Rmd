@@ -1,0 +1,20 @@
+---
+output: html_document
+---
+
+## Acknowledgements
+
+**Shiny Application development:** Jessica Wojciechowski^1
+
+**Population pharmacokinetic model development:** Julie Desrochers^2,3 , Wendy Klein-Schwartz^4 , Jogarao V.S. Gobburu^3 , Mathangi Gopalakrishnan^3
+
+**Affiliations:**
+
+^1 Australian Centre for Pharmacometrics, School of Pharmacy and Medical Sciences, University of South Australia
+
+^2 inVentiv Health
+
+^3 Center for Translational Medicine, School of Pharmacy, University of Maryland, Baltimore
+
+^4 Maryland Poison Center, School of Pharmacy, University of Maryland, Baltimore
+
