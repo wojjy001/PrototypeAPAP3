@@ -1,7 +1,7 @@
 # global.R script for PrototypeAPAP3
 # Objects that are not reactive are written here
 # This also a safe place for functions that are then used in server.R
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Load package libraries
   library(shiny)
   library(shinydashboard)  # Package for making cooler user-interface for Shiny applications
