@@ -1,5 +1,5 @@
 ---
-title: "Paracetamol Overdose Summary"
+title: "Acetaminophen Overdose Summary"
 output:
   pdf_document:
     fig_height: 3
@@ -13,20 +13,20 @@ output:
   theme_bw2 <- theme_set(theme_bw(base_size = 10))
 ```
 
-### Patient and paracetamol information
+### Patient and acetaminophen information
 
-``` {r Patient and Paracetamol Information,echo = FALSE,warning = FALSE}
+``` {r Patient and Acetaminophen Information,echo = FALSE,warning = FALSE}
 #Calculate AGE
   AGE <- round(as.double(difftime(input$DDATE,input$BDATE))/365, digits = 1)
 #Assign labels to "SEX"
   if (input$SEX == 1) SEX <- "Male"
   if (input$SEX == 2) SEX <- "Female"
 #Assign label to product category ingested
-  if (input$PROD == 1) PROD <- "Paracetamol alone"
-  if (input$PROD == 2) PROD <- "Paracetamol and antihistamine"
-  if (input$PROD == 3) PROD <- "Paracetamol and opioid"
-  if (input$PROD == 4) PROD <- "Paracetamol and other"
-  if (input$PROD == 5) PROD <- "Extended-release Paracetamol"
+  if (input$PROD == 1) PROD <- "Acetaminophen alone"
+  if (input$PROD == 2) PROD <- "Acetaminophen and antihistamine"
+  if (input$PROD == 3) PROD <- "Acetaminophen and opioid"
+  if (input$PROD == 4) PROD <- "Acetaminophen and other"
+  if (input$PROD == 5) PROD <- "Extended-release Acetaminophen"
 #Assign labels to SDAC information
 	if (input$SDAC == TRUE) {
 	  SDAC <- "Administered"	#If the patient received single-dose activated charcoal then SDAC = 1
@@ -37,13 +37,13 @@ output:
 	  SDAC_TIME <- NA
 	}
 #Assign labels to PAC and TIME
-	PAC1 <- input$PAC1  #First plasma paracetamol concentration (mg/L)
-	TIME1 <- input$TIME1  #TIme for first plasma paracetamol concentration (hours)
+	PAC1 <- input$PAC1  #First plasma acetaminophen concentration (mg/L)
+	TIME1 <- input$TIME1  #TIme for first plasma acetaminophen concentration (hours)
 	PAC2 <- NA  #Make NA unless the appropriate "selectInput" option has been chosen
 	TIME2 <- NA  #When PAC2 is NA, just make it correspond to TIME = 0
 	if (input$NPAC > 1) {
-		PAC2 <- input$PAC2  #Second plasma paracetamol concentration (mg/L)
-		TIME2 <- input$TIME2  #Time for second plasma paracetamol concentration (hours)
+		PAC2 <- input$PAC2  #Second plasma acetaminophen concentration (mg/L)
+		TIME2 <- input$TIME2  #Time for second plasma acetaminophen concentration (hours)
 	}
 ```
 
@@ -58,7 +58,7 @@ Single-dose activated charcoal (SDAC)               | `r SDAC`
 Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 
-### Sampled plasma paracetamol concentrations
+### Sampled plasma acetaminophen concentrations
 
 
 **Date of Ingestion** | **Time Since Acute Ingestion (hours)** | **Concentration (mg/L)**
@@ -67,9 +67,9 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 `r format(input$DDATE, "%d-%m-%Y")` | 2: `r TIME2`  | `r PAC2`
 
 
-### Individual paracetamol concentration-time profile
+### Individual acetaminophen concentration-time profile
 
-``` {r Individual paracetamol concentration-time profile,echo = FALSE,warning = FALSE}
+``` {r Individual acetaminophen concentration-time profile,echo = FALSE,warning = FALSE}
 	#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
 	max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4]))+20
 	#Calculate the maximum plottable value for y-axis
@@ -106,16 +106,16 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
   #Axes
 	plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
 	if (input$LOGS == FALSE & input$RMN == FALSE) {
-		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.conc))
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.conc))
 	}
 	if (input$LOGS == FALSE & input$RMN == TRUE) {
-		plotobj1 <- plotobj1 + scale_y_continuous("Plasma paracetamol concentration (mg/L)\n",lim = c(0,max.ribbon))
+		plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
 	}
 	if (input$LOGS == TRUE & input$RMN == FALSE) {
-		plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.conc))
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.conc))
 	}
 	if (input$LOGS == TRUE & input$RMN == TRUE) {
-		plotobj1 <- plotobj1 + scale_y_log10("Plasma paracetamol concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
 	}
 	print(plotobj1)
 
