@@ -8,14 +8,14 @@ output:
 
 ### `r paste(paste(input$FNAME,input$LNAME,sep=" "),paste("(MRN: ",input$MRN,")",sep = ""),sep=" ")`
 
-```{r, echo=FALSE}
+```{r,echo = FALSE}
 #Custom ggplot2 theme for the document
   theme_bw2 <- theme_set(theme_bw(base_size = 10))
 ```
 
 ### Patient and paracetamol information
 
-``` {r Patient and Paracetamol Information, echo=FALSE, warning=FALSE}
+``` {r Patient and Paracetamol Information,echo = FALSE,warning = FALSE}
 #Calculate AGE
   AGE <- round(as.double(difftime(input$DDATE,input$BDATE))/365, digits = 1)
 #Assign labels to "SEX"
@@ -69,7 +69,7 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 ### Individual paracetamol concentration-time profile
 
-``` {r Individual paracetamol concentration-time profile, echo=FALSE, warning=FALSE}
+``` {r Individual paracetamol concentration-time profile,echo = FALSE,warning = FALSE}
 	#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
 	max.ribbon <- max(c(na.omit(input.data$PAC),conc.data$IPRE,rule.data$CONCrm[rule.data$TIME == 4]))+20
 	#Calculate the maximum plottable value for y-axis
@@ -101,7 +101,7 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
   if (input$IND_BAY == TRUE) {
   	plotobj1 <- plotobj1 + geom_line(aes(x = time,y = IPRE),data = conc.data,colour = "#3c8dbc",size = 1)  #Bayesian estimated
   }
-	plotobj1 <- plotobj1 + geom_point(aes(x = TIME,y = PAC),data = input.data,size = 2)  #Observations
+	plotobj1 <- plotobj1 + geom_point(aes(x = time,y = PAC),data = input.data,size = 2)  #Observations
 
   #Axes
 	plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)")
@@ -130,7 +130,7 @@ Time of SDAC administration (hours since ingestion) | `r SDAC_TIME`
 
 ### N-acetylcysteine administration recommendations
 
-``` {r Administer N-acetylcysteine, echo=FALSE, warning=FALSE}
+``` {r Administer N-acetylcysteine,echo = FALSE,warning = FALSE}
   if (input$IND_BAY == FALSE) {
     if (input$NPAC == 1) {
       if (input$PAC1 >= rule.data$CONCrm[rule.data$TIME == input$TIME1]) {

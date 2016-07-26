@@ -230,7 +230,7 @@ shinyServer(function(input,output,session) {
 	# Generate a document of patient summary results
 	output$downloadReport <- downloadHandler(
 		filename = function() {
-			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"acetaminophen_Report.pdf",sep = "_")
+			paste(format(input$DDATE,"%Y-%m-%d"),input$LNAME,input$MRN,"Acetaminophen_Report.pdf",sep = "_")
 		},
 		content = function(file) {
 			src <- normalizePath("report.Rmd")
