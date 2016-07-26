@@ -35,6 +35,7 @@ output: html_document
     + The effect of acetaminophen product category on KA
     + Pharmokinetic parameters, CL and V, were allometrically scaled to a 70 kg individual
 
-Full model equations and parameter values are outlined in the *Population Model* tab (written in mrgsolve code).
+* Full model equations and parameter values are outlined in the *Population Model* tab (written in mrgsolve code).
 
-
+* The model was developed using Phoenix^® 64 Build 6.4.0.768 - NLME 1.3 software [Pharsight Corporation, Cary, NC, USA], and the first-order conditional estimation–extended least squares method
+* Data was obtained from two retrospective independent cohorts of acute acetaminophen overdoses that were managed by the Maryland Poison Center and treated in a Maryland healthcare facility between June 2010 and April 2014.  The first cohort was used to build the population pharmacokinetic model, whereas the second cohort was reserved for external model validation
