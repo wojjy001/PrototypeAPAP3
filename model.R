@@ -38,6 +38,7 @@ code <- '
 		PROD4_KA = -0.348731 // Effect of extended-release acetaminophen on KA
 
 	$OMEGA	// Inter-individual variability - random effects
+		// Used as the prior for Bayesian estimation
 		block = TRUE
 		labels = s(ETA_CL,ETA_V,ETA_KA,ETA_F)
 		0.035022858

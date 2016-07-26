@@ -22,7 +22,6 @@
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
                 seq(from = 4,to = 12,by = 2),
                 seq(from = 16,to = 32,by = 8))
-  TIME.tgrid <- c(tgrid(0,3,0.5),tgrid(4,12,2),tgrid(16,32,8))
 # Set the number of individuals that make up the 95% prediction intervals
   n <- 1000
 # 95% prediction interval functions
@@ -30,8 +29,13 @@
   CI95hi <- function(x) quantile(x,probs = 0.975)
 # Set seed for reproducible numbers
   set.seed(123456)
-# One per ID function
-  oneperID <- function(x) head(x,1)
+
+# Update model code for Bayesian forecasting (now called "mod2")
+  # Update the omega values in model code - omega here are NOT between-subject variability but the precision of the parameters
+  # For the individual line - there is no error
+    omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)	# Simulating only the individual based on the Bayes estimates - no need for variability
+  # Formally update the model parameters
+    mod2 <- mod %>% carry.out(amt,PAC) %>% omat(dmat(omega.list))
 
 # ------------------------------------------------------------------------------
 # Fit individual parameters given the observed concentrations, estimated doses and covariate values
@@ -40,15 +44,8 @@
       initial.par <- c(exp(0),exp(0),exp(0),exp(0)) # Population values as initial estimates
       par <- initial.par
     # Observation - for the posterior
-      Yobs <- input.data$PAC  # Most of this will be NA except for the samples
-    # Update "mod" (model code for mrgsolve) parameters for Bayesian estimation
-      covariate.list <- list(PROD = input.data$PROD[1],WT = input.data$WT[1],SDAC = input.data$SDAC[1])
-      omega.list <- list(ETA_CL = 0,ETA_V = 0,ETA_KA = 0,ETA_F = 0)
-      update.parameters <- mod %>% param(covariate.list) %>% omat(dmat(omega.list))
-    # Input dataset for mrgsolve
-  		input.conc.data <- expand.ev(ID = 1,amt = input.data$AMT[1])
-    # Time sequence for mrgsolve
-      time.bayes <- c(input.data$TIME)
+      Yobs <- input.data$PAC[is.na(input.data$PAC) == F]  # Most of this will be NA except for the samples
+      input.conc.data <- input.data[input.data$time == 0 | is.na(input.data$PAC) == F,]
 
     # Function for estimating individual parameters by minimising the Bayesian objective function value
       bayesian.ofv <- function(par) {
@@ -56,20 +53,22 @@
         ETA2fit <- log(par[2])  # Bayesian estimated ETA for volume
         ETA3fit <- log(par[3])  # Bayesian estimated ETA for absorption rate constant
         ETA4fit <- log(par[4])  # Bayesian estimated ETA for bioavailability
-
-        ETAfit.list <- list(ERR_CL = ETA1fit,ERR_V = ETA2fit,ERR_KA = ETA3fit,ERR_F = ETA4fit)  # List of ETA values that will be optimised - these will updated and connected to ERR_X terms in the mrgsolve model code
-        conc.data <- update.parameters %>% param(ETAfit.list) %>% data_set(input.conc.data,evid = 1,cmt = 1) %>% mrgsim(start = 0,end = 0,add = time.bayes)  # Simulate concentration-time profile with nth iteration of ETA values
+        # List of ETA values that will be optimised - these will updated and connected to ERR_X terms in the mrgsolve model code
+          input.conc.data$ERR_CL <- ETA1fit
+          input.conc.data$ERR_V <- ETA2fit
+          input.conc.data$ERR_KA <- ETA3fit
+          input.conc.data$ERR_F <- ETA4fit
+        # Simulate concentration-time profile with nth iteration of ETA values
+          conc.data <- mod2 %>% data_set(input.conc.data) %>% mrgsim()
           conc.data <- as.data.frame(conc.data) # Convert to a data frame
-          conc.data <- conc.data[-1,] # Remove the first row (don't need 2 x time = 0)
 
-          Yhat <- conc.data$IPRE  # Make a Yhat vector based on IPRE in conc.data
         # If Yobsx was NA, then Yhat needs to be NA too (for calculating the log-likelihood)
-          Yhat[is.na(Yobs) == T] <- NA
+          Yhat <- conc.data$IPRE[is.na(conc.data$PAC) == F]  # Make a Yhat vector based on IPRE in conc.data
         # Posterior component (from the data)
         # Log densities of residuals
         # Residual error model, Y = IPRE*(1+ERR), Y = IPRE + IPRE*ERR
           ERRPRO <- sqrt(as.matrix(smat(mod)))  # Pull out SIGMA from "mod" - original model code
-          loglikpost <- dnorm(na.omit(Yobs),mean = na.omit(Yhat),sd = na.omit(Yhat)*ERRPRO,log = T)
+          loglikpost <- dnorm(Yobs,mean = Yhat,sd = Yhat*ERRPRO,log = T)
         # Prior component (from the model)
           ETA <- c(ETA1fit,ETA2fit,ETA3fit,ETA4fit) # List of Bayesian estimated ETAs
           ETABSV <- as.matrix(omat(mod)) # PPV for model parameters in "mod" - original model code
@@ -81,29 +80,6 @@
       }
     # Optimise the ETA parameters to minimise the OFVBayes
       resultfit <- optim(par,bayesian.ofv,hessian = TRUE,method = "L-BFGS-B",lower = c(0.001,0.001,0.001,0.001),upper = c(Inf,Inf,Inf,Inf),control = list(parscale = par,factr = 1e7))
-    # Put results in a data frame
-      # Split up the elements of the Hessian matrix to calculate standard errors for parameter estimates later on
-        resultfit.data <- data.frame(ETA1 = log(resultfit$par[1]),
-                                     ETA2 = log(resultfit$par[2]),
-                                     ETA3 = log(resultfit$par[3]),
-                                     ETA4 = log(resultfit$par[4]),
-                                     HESS11 = resultfit$hessian[1,1],
-                                     HESS12 = resultfit$hessian[1,2],
-                                     HESS13 = resultfit$hessian[1,3],
-                                     HESS14 = resultfit$hessian[1,4],
-                                     HESS21 = resultfit$hessian[2,1],
-                                     HESS22 = resultfit$hessian[2,2],
-                                     HESS23 = resultfit$hessian[2,3],
-                                     HESS24 = resultfit$hessian[2,4],
-                                     HESS31 = resultfit$hessian[3,1],
-                                     HESS32 = resultfit$hessian[3,2],
-                                     HESS33 = resultfit$hessian[3,3],
-                                     HESS34 = resultfit$hessian[3,4],
-                                     HESS41 = resultfit$hessian[4,1],
-                                     HESS42 = resultfit$hessian[4,2],
-                                     HESS43 = resultfit$hessian[4,3],
-                                     HESS44 = resultfit$hessian[4,4])
-        resultfit.data
   }
 
 # ------------------------------------------------------------------------------
