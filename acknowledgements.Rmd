@@ -17,4 +17,3 @@ output: html_document
 ^3 Center for Translational Medicine, School of Pharmacy, University of Maryland, Baltimore
 
 ^4 Maryland Poison Center, School of Pharmacy, University of Maryland, Baltimore
-

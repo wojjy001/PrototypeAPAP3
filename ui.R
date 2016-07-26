@@ -149,7 +149,15 @@ body <-
         pre(includeText("model.R"))
       ), # Brackets closing "tabItem" for "model"
       tabItem(tabName = "acknowledgements",
-        includeMarkdown("acknowledgements.Rmd")
+        includeMarkdown("acknowledgements.Rmd"),
+        fixedRow(
+          column(3,
+            img(src = "ACP_logo.png",width = 225,height = 75) # University of South Australia, Australian Centre for Pharmacometrics logo
+          ),  # Brackets closing "column"
+          column(3,
+            img(src = "umb_ctm_logo.png",width = 240,height = 80)  # University of Maryland, Baltimore logo
+          ) # Brackets closing "column"
+        ) # Brackets closing "fixedRow"
       ) # Brackets closing "tabItem" for "acknowledgements"
 		)  # Brackets closing "tabItems"
 	) # Brackets closing "dashboardBody"
