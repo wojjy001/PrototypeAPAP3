@@ -10,7 +10,7 @@ output: html_document
 
 **Affiliations:**
 
-^1 Australian Centre for Pharmacometrics, School of Pharmacy and Medical Sciences, University of South Australia
+^1 Australian Centre for Pharmacometrics, School of Pharmacy and Medical Sciences, Sansom Institute for Health Research, University of South Australia
 
 ^2 inVentiv Health
 
