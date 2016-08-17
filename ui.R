@@ -159,7 +159,7 @@ body <-
           column(3,
             img(src = "ACP_logo.png",width = 225,height = 75) # University of South Australia, Australian Centre for Pharmacometrics logo
           ),  # Brackets closing "column"
-          column(3,
+          column(3,offset = 1,
             img(src = "umb_ctm_logo.png",width = 240,height = 80)  # University of Maryland, Baltimore logo
           ) # Brackets closing "column"
         ) # Brackets closing "fixedRow"
