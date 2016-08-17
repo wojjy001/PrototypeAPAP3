@@ -21,21 +21,3 @@ output: html_document
 * The interface features “widgets” that allow users to enter specific patient details (name, date of birth, weight, gender), information regarding the amount and type of acetaminophen product ingested, and plasma concentrations sampled (and their corresponding times since ingestion).
 * Widget input is used to guide estimation of individual PK parameters that describe the patient’s concentration-time profile from which NAC administration decisions can be based upon.
 * The application provides graphical and written summaries of the patient’s acetaminophen concentration-time profile and NAC recommendations, respectively, which can be later referred to in a downloadable report.
-
-*****
-
-## Acetaminophen Population Pharmacokinetic Model
-
-* This application describes acetaminophen pharmacokinetics using a 1-compartment population model with first-order absorption parameterised in terms of clearance (CL; L/h/70 kg), volume of the central compartment (V; L/70 kg), first-order absorption rate constant (KA; h^-1 ), and relative bioavailability (F)
-* All pharmacokinetic parameters included inter-individual variability to describe differences in acetaminophen pharmacokinetic profiles between individuals (and covariance between all random effects)
-    + Including random effects on F - to account for uncertainity in the amount of acetaminophen ingested by the individual
-* Differences between individual model predictions and the individual's observed acetaminophen concentrations were described by a proportional residual error mode
-* Covariate effects included:
-    + The effect of the administration of SDAC on F
-    + The effect of acetaminophen product category on KA
-    + Pharmokinetic parameters, CL and V, were allometrically scaled to a 70 kg individual
-
-* Full model equations and parameter values are outlined in the *Population Model* tab (written in mrgsolve code).
-
-* The model was developed using Phoenix^® 64 Build 6.4.0.768 - NLME 1.3 software [Pharsight Corporation, Cary, NC, USA], and the first-order conditional estimation–extended least squares method
-* Data was obtained from two retrospective independent cohorts of acute acetaminophen overdoses that were managed by the Maryland Poison Center and treated in a Maryland healthcare facility between June 2010 and April 2014.  The first cohort was used to build the population pharmacokinetic model, whereas the second cohort was reserved for external model validation

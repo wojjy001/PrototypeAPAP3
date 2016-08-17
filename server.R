@@ -258,4 +258,10 @@ shinyServer(function(input,output,session) {
   session$onSessionEnded(function() {
     stopApp()
   })
+
+	output$session.info <- renderPrint({
+		# Load session information
+		 	session.info <- sessionInfo()
+			print(session.info)
+	})	# Brackets closing "renderText"
 })  # Brackets closing "shinyServer" function
