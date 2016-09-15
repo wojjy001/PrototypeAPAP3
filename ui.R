@@ -120,7 +120,7 @@ body <-
               checkboxInput("IND_BAY","Show Bayesian forecast",value = TRUE),  # Checkbox input for plotting empirical Bayesian prediction for the individual
               conditionalPanel(condition = "input.IND_BAY",
 							  div(
-                  checkboxInput("CI95","Show 95% prediction intervals",value = TRUE)	# Checkbox input for plotting empirical 95% confidence intervals
+                  checkboxInput("CI95","Show 95% confidence intervals",value = TRUE)	# Checkbox input for plotting empirical 95% confidence intervals
                 ) # Brackets closing "div"
               ) # Brackets closing "conditionalPanel"
 						),	# Brackets closing "column"
@@ -131,7 +131,7 @@ body <-
             column(8,
   						strong(textOutput("NACtextOutput")),
               conditionalPanel(condition = "input.IND_BAY",
-                p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% prediction intervals)")
+                p("(Recommendations are based on the Bayesian forecasted concentration profile and not 95% confidence intervals)")
               )  # Brackets closing "conditionalPanel"
             ),  # Brackets closing "column"
             column(4,

@@ -87,7 +87,7 @@ shinyServer(function(input,output,session) {
 			rse.par <- c(CL.rse,V.rse,KA.rse,F.rse)  # Vector of parameter relative standard errors
 		})	# Brackets closing "Rrse.par"
 
-	# Simulate 95% prediction intervals for the individual based on standard errors
+	# Simulate 95% confidence intervals for the individual based on standard errors
 		Rci.data <- reactive({
 		  input.data <- Rinput.data() # Read in reactive "input.data"
 			bayes.data <- Rbayes.data()	# Read in reactive "bayes.data"
@@ -108,7 +108,7 @@ shinyServer(function(input,output,session) {
 				)
 			# Formally update the model parameters
 				mod3 <- mod %>% omat(bmat(omega.list))
-			#	Replicate the length of the data frame for the number of individuals to be simulated for 95% prediction intervals
+			#	Replicate the length of the data frame for the number of individuals to be simulated for 95% confidence intervals
 				input.ci.data <- lapply(input.data,rep.int,times = n)
 				input.ci.data <- as.data.frame(input.ci.data)	# Convert to data frame
 				input.ci.data$ID <- sort(c(rep(1:n,times = length(input.data$time))))	# Add ID column for mrgsim
@@ -160,7 +160,7 @@ shinyServer(function(input,output,session) {
 			  plotobj3 <- plotobj3 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  # Rumack-Matthew Nomogram
 			}
 
-		# 95% prediction intervals
+		# 95% confidence intervals
 			if (input$IND_BAY == TRUE & input$CI95 == TRUE) {
 				plotobj3 <- plotobj3 + stat_summary(aes(x = time,y = IPRE),data = ci.data,geom = "ribbon",fun.ymin = "CI95lo",fun.ymax = "CI95hi",alpha = 0.2,fill = "#3c8dbc",colour = "#3c8dbc",linetype = "dashed")
 			}
@@ -191,7 +191,7 @@ shinyServer(function(input,output,session) {
 	output$RSEtextOutput <- renderText({
 		rse.par <- Rrse.par()	# Read in reactive "rse.par"
 		warning.text <- " "
-		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend examining 95% prediction intervals before making a decision."
+		if (rse.par[1] > 50 | rse.par[2] > 50 | rse.par[3] > 50 | rse.par[4] > 50) warning.text <- "Poor precision of at least one parameter estimate (relative standard error > 50%).  Recommend examining 95% confidence intervals before making a decision."
 		warning.text
 	})	# Brackets closing "renderText"
 

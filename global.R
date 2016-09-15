@@ -22,9 +22,9 @@
   TIME.base <- c(seq(from = 0,to = 3,by = 0.5),
                 seq(from = 4,to = 12,by = 2),
                 seq(from = 16,to = 32,by = 8))
-# Set the number of individuals that make up the 95% prediction intervals
+# Set the number of individuals that make up the 95% confidence intervals
   n <- 1000
-# 95% prediction interval functions
+# 95% confidence interval functions
   CI95lo <- function(x) quantile(x,probs = 0.025)
   CI95hi <- function(x) quantile(x,probs = 0.975)
 # Set seed for reproducible numbers
