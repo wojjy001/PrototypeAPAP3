@@ -4,13 +4,13 @@ output: html_document
 
 ## Acknowledgements
 
-**Shiny Application development:** Jessica Wojciechowski^1
+**Shiny Application development:** Jessica Wojciechowski^1 (Email: jessica.wojciechowski@mymail.unisa.edu.au)
 
 **Population pharmacokinetic model development:** Julie Desrochers^2,3 , Wendy Klein-Schwartz^4 , Jogarao V.S. Gobburu^3 , Mathangi Gopalakrishnan^3
 
 **Affiliations:**
 
-^1 Australian Centre for Pharmacometrics, School of Pharmacy and Medical Sciences, Sansom Institute for Health Research, University of South Australia
+^1 Australian Centre for Pharmacometrics, School of Pharmacy and Medical Sciences, Sansom Institute for Health Research, University of South Australia *(The author acknowledges that the Australian Centre for Pharmacometrics is an initiative of the Australian Government as part of the National Collaborative Research Infrastructure Strategy)*
 
 ^2 inVentiv Health
 

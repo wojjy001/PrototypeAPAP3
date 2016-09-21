@@ -251,6 +251,48 @@ shinyServer(function(input,output,session) {
 		}
 	)	# Brackets closing "downloadHandler"
 
+	##########
+	##_DEMO_##
+	##########
+	output$DEMOplotOutput <- renderPlot({
+		#Calculate the maximum plottable value for shaded ribbons (Rumack-Matthew Nomogram)
+		max.ribbon <- max(c(input$DEMO_PAC,rule.data$CONCrm[rule.data$TIME == 4]))+20
+		#Calculate the maximum plottable value for y-axis
+		max.conc <- input$DEMO_PAC+20
+
+		plotobj1 <- NULL
+		plotobj1 <- ggplot()
+
+		#Rumack-Matthew Nomogram
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = 0.1,ymax = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "darkgreen")  #Range between min concentration and treatment line
+		plotobj1 <- plotobj1 + geom_ribbon(aes(x = TIME,ymin = CONCrm,ymax = max.ribbon),data = rule.data[rule.data$TIME %in% TIME,],alpha = 0.3,fill = "red")  #Range between Rumack-Matthew Nomogram and max concentration
+		plotobj1 <- plotobj1 + geom_line(aes(x = TIME,y = CONCrm),data = rule.data[rule.data$TIME %in% TIME,],linetype = "dashed",size = 1)  #Rumack-Matthew Nomogram
+
+		#Demonstration free input concentrations
+		plotobj1 <- plotobj1 + geom_point(aes(x = input$DEMO_TIME,y = input$DEMO_PAC),size = 4)
+
+		#Axes
+		plotobj1 <- plotobj1 + scale_x_continuous("\nTime since ingestion (hours)",lim = c(0,max(rule.data$TIME)))
+		if (input$DEMO_LOG == FALSE) {
+			plotobj1 <- plotobj1 + scale_y_continuous("Plasma acetaminophen concentration (mg/L)\n",lim = c(0,max.ribbon))
+		}
+		if (input$DEMO_LOG == TRUE) {
+			plotobj1 <- plotobj1 + scale_y_log10("Plasma acetaminophen concentration (mg/L)\n",lim = c(0.1,max.ribbon))
+		}
+		print(plotobj1)
+	})	#Brackets closing "renderPlot"
+
+	output$DEMOtextOutput <- renderText({
+		if (input$DEMO_PAC >= rule.data$CONCrm[rule.data$TIME == input$DEMO_TIME]) {
+			text <- "Give N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		} else if (input$DEMO_TIME < 4) {
+			text <- "Sampling is too early to use the Rumack-Matthew Nomogram"
+		} else {
+			text <- "No requirement for N-acetylcysteine according to the Rumack-Matthew Nomogram"
+		}
+		text
+	})	#Brackets closing "renderText"
+
   #############
   ##_SESSION_##
   #############

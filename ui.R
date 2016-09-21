@@ -14,15 +14,15 @@ sidebar <-
 	dashboardSidebar(
 		width = 250,	# Width of sidebar the same as width of header
 		sidebarMenu(
-      menuItem("Patient Information",tabName = "patient",icon = icon("child")),
-      menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
-		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart")),
-      menuItem("About",tabName = "about",icon = icon("question-circle"),
+			menuItem("About",tabName = "about",icon = icon("question-circle"),
         menuSubItem("Background and Objective",tabName = "objective",icon = icon("angle-double-right")),
         menuSubItem("Population Model",tabName = "model",icon = icon("angle-double-right")),
 				menuSubItem("Resources",tabName = "packages",icon = icon("angle-double-right")),
         menuSubItem("Acknowledgements",tabName = "acknowledgements",icon = icon("angle-double-right"))
-      )
+      ),			
+      menuItem("Patient Information",tabName = "patient",icon = icon("child")),
+      menuItem("Overdose Information",tabName = "para-info",icon = icon("medkit")),
+		  menuItem("Plot and Numerical Output",tabName = "results",icon = icon("line-chart"))
 		)	# Brackets closing "sidebarMenu"
 	) # Brackets closing "dashboardSidebar"
 # Application's body
@@ -103,11 +103,11 @@ body <-
           fixedRow(
             column(12,
     					h4(strong("Individual Acetaminophen Concentration-Time Profile")),
-    					plotOutput("CONCplotOutput"),
-    					br(),	# Add a space between plot and "warning text"
-              conditionalPanel(condition = "input.IND_BAY",
-    					  textOutput("RSEtextOutput")	# Sentence that appears if the precision of parameter estimates is poor
-              )  # Brackets closing "conditionalPanel"
+    					plotOutput("CONCplotOutput")#,
+    					# br(),	# Add a space between plot and "warning text"
+              # conditionalPanel(condition = "input.IND_BAY",
+    					  # textOutput("RSEtextOutput")	# Sentence that appears if the precision of parameter estimates is poor
+              # )  # Brackets closing "conditionalPanel"
             ),  # Brackets closing "column"
   					align = "center"
           ),  # Brackets closing "fixedRow"
@@ -144,6 +144,25 @@ body <-
 				)	# Brackets closing "box"
 			), # Brackets closing "tabItem" for "results"
 			tabItem(tabName = "objective",
+				includeMarkdown("background.Rmd"),
+				box(
+					fixedRow(
+						column(4, offset = 2,
+							numericInput("DEMO_TIME","Time since ingestion (hours)",min = 0,value = 4)  #Numeric input for demonstration time
+						),  #Brackets closing "column"
+						column(4,
+							numericInput("DEMO_PAC","Concentration (mg/L)",min = 0,value = 150)  #Numeric input for demonstration concentration
+						), #Brackets closing "column"
+						align = "center"
+					), #Brackets closing "fixedRow"
+					plotOutput("DEMOplotOutput"),  #Plot with Rumack-Matthew nomogram reactive to the widget input below (DEMO_TIME and DEMO_PAC)
+					checkboxInput("DEMO_LOG","Plot concentrations on a log-scale",value = FALSE),
+					h4(strong(textOutput("DEMOtextOutput"))),
+					width = 12,
+					title = "Rumack-Matthew Nomogram",
+					solidHeader = TRUE,
+					status = "primary"
+				), #Brackets closing "box"
         includeMarkdown("objective.Rmd")
       ), # Brackets closing "tabItem" for "objective"
       tabItem(tabName = "model",
