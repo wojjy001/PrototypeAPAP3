@@ -6,6 +6,6 @@ output: html_document
 
 **Background:**
 
-* In clinical practice, decisions to administer the antidote, N-acetylcysteine (NAC), following acute acetaminophen overdose relies on a single plasma acetaminophen concentration (PAC) obtained at least 4 hours post ingestion against the Rumack-Matthew nomogram (below).
-* Case reports of nomogram failure have been reported particularly in those patients who ingest acetaminophen combination products (i.e., with an opioid or antihistamine) or extended-release formulations.
-* Previous unpublished work has demonstrated that population pharmacokinetic (PK) modelling coupled with Bayesian estimation can forecast an individual’s PK profile based on 1 PAC observation, and is more sensitive in identifying those patients who really need the antidote when compared to standard clinical practice.
+* In clinical practice, decisions to administer the antidote, N-acetylcysteine (NAC), following acute acetaminophen overdose relies on a single plasma acetaminophen concentration (PAC) obtained at least 4 hours post ingestion against the Rumack-Matthew nomogram (below)
+* Case reports of nomogram failure have been reported particularly in those patients who ingest acetaminophen combination products (i.e., with an opioid or antihistamine) or extended-release formulations
+* Previous unpublished work has demonstrated that population pharmacokinetic (PK) modelling coupled with Bayesian estimation can forecast an individual’s PK profile based on 1 PAC observation, and forecasts can be used to predict if an individual requires NAC or not

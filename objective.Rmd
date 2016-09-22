@@ -2,14 +2,14 @@
 output: html_document
 ---
 
-**Objective:** The objective of this work was to build the previously developed PK model and Bayesian statistical framework into a practical, web-based application that can be used by physicians.
+**Objective:** The objective of this work was to build the previously developed PK model and Bayesian statistical framework into a practical, web-based application that can be used by physicians
 
 *****
 
 ## Key Application Features
 
-* The web-based application was developed using the R data analysis and statistical language and the Shiny package for R (as well as several other add-on packages for R providing additional statistical and graphical capabilities).
+* The web-based application was developed using the R data analysis and statistical language and the Shiny package for R (as well as several other add-on packages for R providing additional statistical and graphical capabilities)
 
-* The interface features “widgets” that allow users to enter specific patient details (name, date of birth, weight, gender), information regarding the amount and type of acetaminophen product ingested, and plasma concentrations sampled (and their corresponding times since ingestion).
-* Widget input is used to guide estimation of individual PK parameters that describe the patient’s concentration-time profile from which NAC administration decisions can be based upon.
-* The application provides graphical and written summaries of the patient’s acetaminophen concentration-time profile and NAC recommendations, respectively, which can be later referred to in a downloadable report.
+* The interface features “widgets” that allow users to enter specific patient details (name, date of birth, weight, gender), information regarding the amount and type of acetaminophen product ingested, and plasma concentrations sampled (and their corresponding times since ingestion)
+* Widget input is used to guide estimation of individual PK parameters that describe the patient’s concentration-time profile from which NAC administration decisions can be based upon
+* The application provides graphical and written summaries of the patient’s acetaminophen concentration-time profile and NAC recommendations, respectively, which can be later referred to in a downloadable report
