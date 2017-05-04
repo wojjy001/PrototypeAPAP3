@@ -62,6 +62,7 @@ $MAIN	// Individual parameter values
 	double F = POPF*(1+SDAC_F*SDAC)*exp(ETA_F+ERR_F);
 	F_GUT = F;
 
+$TABLE
 	double IPRE = CENT/V;
  	double DV = IPRE*(1 + ERR_PRO);
 
